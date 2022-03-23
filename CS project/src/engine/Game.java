@@ -26,7 +26,7 @@ public class Game {
 		placeChampions();
 		placeCovers();
 	}
-	
+
 	public Player getFirstPlayer() {
 		return firstPlayer;
 	}
@@ -68,17 +68,17 @@ public class Game {
 	}
 
 	private void placeChampions() {
-		 ArrayList<Champion> p1=firstPlayer.getTeam();
-		 ArrayList<Champion> p2=secondPlayer.getTeam();
-		 board=new Object[BOARDWIDTH][BOARDHEIGHT];
-		 for(int i = 1; i<4;i++){
-			 board[0][i] = p1.get(i-1);
-		 }
-		 for(int i = 1; i<4;i++){
-			 board[4][i] = p2.get(i-1);
-		 }
+		ArrayList<Champion> p1=firstPlayer.getTeam();
+		ArrayList<Champion> p2=secondPlayer.getTeam();
+		board=new Object[BOARDWIDTH][BOARDHEIGHT];
+		for(int i = 1; i<4;i++){
+			board[0][i] = p1.get(i-1);
+		}
+		for(int i = 1; i<4;i++){
+			board[4][i] = p2.get(i-1);
+		}
 	}
-	
+
 	private void placeCovers() {
 		int c = 0;
 		while(c!=5){
@@ -91,12 +91,12 @@ public class Game {
 			}
 		}		
 	}
-	
+
 	public static void loadAbilities(String filePath) throws Exception {
 		BufferedReader br= new BufferedReader(new FileReader(filePath));
 		availableAbilities=new ArrayList<Ability>();
 		String[] a = br.readLine().split(",");
-		
+
 		/*
 		if(a[0].equals("DMG")){
 			availableAbilities.add(new DamagingAbility(a[1], Integer.parseInt(a[2]), 
@@ -140,11 +140,24 @@ public class Game {
 				break;
 			}
 		}
-		
-		*/
+
+		 */
 	}
-	
+
 	public static void loadChampions(String filePath) throws Exception {
 		BufferedReader br= new BufferedReader(new FileReader("Champions.csv"));
+		availableChampions = new ArrayList<Champion>();
+		String[] a = br.readLine().split(",");
+
+
+		if(a[0].equals("H")) {
+			availableChampions.add(new Hero(a[1], Integer.parseInt(a[2]), Integer.parseInt(a[3]), Integer.parseInt(a[4]), Integer.parseInt(a[5]), Integer.parseInt(a[6]), Integer.parseInt(a[7])));
+		}
+		if(a[0].equals("V")) {
+			availableChampions.add(new Villain(a[1], Integer.parseInt(a[2]), Integer.parseInt(a[3]), Integer.parseInt(a[4]), Integer.parseInt(a[5]), Integer.parseInt(a[6]), Integer.parseInt(a[7])));
+		}
+		else {
+			availableChampions.add(new AntiHero(a[1], Integer.parseInt(a[2]), Integer.parseInt(a[3]), Integer.parseInt(a[4]), Integer.parseInt(a[5]), Integer.parseInt(a[6]), Integer.parseInt(a[7])));
+		}
 	}
 }

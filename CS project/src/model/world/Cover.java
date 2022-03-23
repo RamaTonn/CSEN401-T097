@@ -9,14 +9,14 @@ public class Cover {
 	}
 	public void setCurrentHP(int currentHP) {
 		if(currentHP>=0)
-		this.currentHP = currentHP;
+			this.currentHP = currentHP;
 	}
 	public Point getLocation() {
 		return location;
 	}
-public Cover(int x, int y){
-	this.location= new Point(x,y);
-	Random r=new Random();
-	this.currentHP=r.nextInt(900)+100;
+	public Cover(int x, int y){
+		this.location= new Point(x,y);
+		Random r=new Random();
+		this.currentHP=r.nextInt(900)+100;
 	}
 }
