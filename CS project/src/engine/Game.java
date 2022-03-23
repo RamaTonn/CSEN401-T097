@@ -96,68 +96,68 @@ public class Game {
 		BufferedReader br= new BufferedReader(new FileReader(filePath));
 		availableAbilities=new ArrayList<Ability>();
 		String[] a = br.readLine().split(",");
-
-		/*
-		if(a[0].equals("DMG")){
-			availableAbilities.add(new DamagingAbility(a[1], Integer.parseInt(a[2]), 
-					Integer.parseInt(a[4]), Integer.parseInt(a[3]), AreaOfEffect.valueOf(a[5]),Integer.parseInt(a[6]),Integer.parseInt(a[7])));
-		}
-		if(a[0].equals("HEL")){
-			availableAbilities.add(new HealingAbility(a[1], Integer.parseInt(a[2]), 
-					Integer.parseInt(a[4]), Integer.parseInt(a[3]), AreaOfEffect.valueOf(a[5]),Integer.parseInt(a[6]),Integer.parseInt(a[7])));
-		}
-		else {
-			switch(a[7]) {
-			case "Disarm":
-				availableAbilities.add(new CrowdControlAbility(a[1], Integer.parseInt(a[2]), Integer.parseInt(a[4]), Integer.parseInt(a[3]), AreaOfEffect.valueOf(a[5]),Integer.parseInt(a[6]),new Disarm(a[1], Integer.parseInt(a[8]))));
-				break;
-			case "Dodge":
-				availableAbilities.add(new CrowdControlAbility(a[1], Integer.parseInt(a[2]), Integer.parseInt(a[4]), Integer.parseInt(a[3]), AreaOfEffect.valueOf(a[5]),Integer.parseInt(a[6]),new Dodge(a[1], Integer.parseInt(a[8]))));
-				break;
-			case "Embrace":
-				availableAbilities.add(new CrowdControlAbility(a[1], Integer.parseInt(a[2]), Integer.parseInt(a[4]), Integer.parseInt(a[3]), AreaOfEffect.valueOf(a[5]),Integer.parseInt(a[6]),new Embrace(a[1], Integer.parseInt(a[8]))));
-				break;
-			case "PowerUp":
-				availableAbilities.add(new CrowdControlAbility(a[1], Integer.parseInt(a[2]), Integer.parseInt(a[4]), Integer.parseInt(a[3]), AreaOfEffect.valueOf(a[5]),Integer.parseInt(a[6]),new PowerUp(a[1], Integer.parseInt(a[8]))));
-				break;
-			case "Root":
-				availableAbilities.add(new CrowdControlAbility(a[1], Integer.parseInt(a[2]), Integer.parseInt(a[4]), Integer.parseInt(a[3]), AreaOfEffect.valueOf(a[5]),Integer.parseInt(a[6]),new Root(a[1], Integer.parseInt(a[8]))));
-				break;	
-			case "Shield":
-				availableAbilities.add(new CrowdControlAbility(a[1], Integer.parseInt(a[2]), Integer.parseInt(a[4]), Integer.parseInt(a[3]), AreaOfEffect.valueOf(a[5]),Integer.parseInt(a[6]),new Shield(a[1], Integer.parseInt(a[8]))));
-				break;
-			case "Shock":
-				availableAbilities.add(new CrowdControlAbility(a[1], Integer.parseInt(a[2]), Integer.parseInt(a[4]), Integer.parseInt(a[3]), AreaOfEffect.valueOf(a[5]),Integer.parseInt(a[6]),new Shock(a[1], Integer.parseInt(a[8]))));
-				break;
-			case "Silence":
-				availableAbilities.add(new CrowdControlAbility(a[1], Integer.parseInt(a[2]), Integer.parseInt(a[4]), Integer.parseInt(a[3]), AreaOfEffect.valueOf(a[5]),Integer.parseInt(a[6]),new Silence(a[1], Integer.parseInt(a[8]))));
-				break;
-			case "SpeedUp":
-				availableAbilities.add(new CrowdControlAbility(a[1], Integer.parseInt(a[2]), Integer.parseInt(a[4]), Integer.parseInt(a[3]), AreaOfEffect.valueOf(a[5]),Integer.parseInt(a[6]),new SpeedUp(a[1], Integer.parseInt(a[8]))));
-				break;
-			case "Stun":
-				availableAbilities.add(new CrowdControlAbility(a[1], Integer.parseInt(a[2]), Integer.parseInt(a[4]), Integer.parseInt(a[3]), AreaOfEffect.valueOf(a[5]),Integer.parseInt(a[6]),new Stun(a[1], Integer.parseInt(a[8]))));
-				break;
+		//while loop needs a condition
+		while(true) {
+			if(a[0].equals("DMG")){
+				availableAbilities.add(new DamagingAbility(a[1], Integer.parseInt(a[2]), 
+						Integer.parseInt(a[4]), Integer.parseInt(a[3]), AreaOfEffect.valueOf(a[5]),Integer.parseInt(a[6]),Integer.parseInt(a[7])));
+			}
+			if(a[0].equals("HEL")){
+				availableAbilities.add(new HealingAbility(a[1], Integer.parseInt(a[2]), 
+						Integer.parseInt(a[4]), Integer.parseInt(a[3]), AreaOfEffect.valueOf(a[5]),Integer.parseInt(a[6]),Integer.parseInt(a[7])));
+			}
+			else {
+				switch(a[7]) {
+				case "Disarm":
+					availableAbilities.add(new CrowdControlAbility(a[1], Integer.parseInt(a[2]), Integer.parseInt(a[4]), Integer.parseInt(a[3]), AreaOfEffect.valueOf(a[5]),Integer.parseInt(a[6]),new Disarm(a[1], Integer.parseInt(a[8]))));
+					break;
+				case "Dodge":
+					availableAbilities.add(new CrowdControlAbility(a[1], Integer.parseInt(a[2]), Integer.parseInt(a[4]), Integer.parseInt(a[3]), AreaOfEffect.valueOf(a[5]),Integer.parseInt(a[6]),new Dodge(a[1], Integer.parseInt(a[8]))));
+					break;
+				case "Embrace":
+					availableAbilities.add(new CrowdControlAbility(a[1], Integer.parseInt(a[2]), Integer.parseInt(a[4]), Integer.parseInt(a[3]), AreaOfEffect.valueOf(a[5]),Integer.parseInt(a[6]),new Embrace(a[1], Integer.parseInt(a[8]))));
+					break;
+				case "PowerUp":
+					availableAbilities.add(new CrowdControlAbility(a[1], Integer.parseInt(a[2]), Integer.parseInt(a[4]), Integer.parseInt(a[3]), AreaOfEffect.valueOf(a[5]),Integer.parseInt(a[6]),new PowerUp(a[1], Integer.parseInt(a[8]))));
+					break;
+				case "Root":
+					availableAbilities.add(new CrowdControlAbility(a[1], Integer.parseInt(a[2]), Integer.parseInt(a[4]), Integer.parseInt(a[3]), AreaOfEffect.valueOf(a[5]),Integer.parseInt(a[6]),new Root(a[1], Integer.parseInt(a[8]))));
+					break;	
+				case "Shield":
+					availableAbilities.add(new CrowdControlAbility(a[1], Integer.parseInt(a[2]), Integer.parseInt(a[4]), Integer.parseInt(a[3]), AreaOfEffect.valueOf(a[5]),Integer.parseInt(a[6]),new Shield(a[1], Integer.parseInt(a[8]))));
+					break;
+				case "Shock":
+					availableAbilities.add(new CrowdControlAbility(a[1], Integer.parseInt(a[2]), Integer.parseInt(a[4]), Integer.parseInt(a[3]), AreaOfEffect.valueOf(a[5]),Integer.parseInt(a[6]),new Shock(a[1], Integer.parseInt(a[8]))));
+					break;
+				case "Silence":
+					availableAbilities.add(new CrowdControlAbility(a[1], Integer.parseInt(a[2]), Integer.parseInt(a[4]), Integer.parseInt(a[3]), AreaOfEffect.valueOf(a[5]),Integer.parseInt(a[6]),new Silence(a[1], Integer.parseInt(a[8]))));
+					break;
+				case "SpeedUp":
+					availableAbilities.add(new CrowdControlAbility(a[1], Integer.parseInt(a[2]), Integer.parseInt(a[4]), Integer.parseInt(a[3]), AreaOfEffect.valueOf(a[5]),Integer.parseInt(a[6]),new SpeedUp(a[1], Integer.parseInt(a[8]))));
+					break;
+				case "Stun":
+					availableAbilities.add(new CrowdControlAbility(a[1], Integer.parseInt(a[2]), Integer.parseInt(a[4]), Integer.parseInt(a[3]), AreaOfEffect.valueOf(a[5]),Integer.parseInt(a[6]),new Stun(a[1], Integer.parseInt(a[8]))));
+					break;
+				}
 			}
 		}
-
-		 */
 	}
 
 	public static void loadChampions(String filePath) throws Exception {
 		BufferedReader br= new BufferedReader(new FileReader("Champions.csv"));
 		availableChampions = new ArrayList<Champion>();
 		String[] a = br.readLine().split(",");
-
-
-		if(a[0].equals("H")) {
-			availableChampions.add(new Hero(a[1], Integer.parseInt(a[2]), Integer.parseInt(a[3]), Integer.parseInt(a[4]), Integer.parseInt(a[5]), Integer.parseInt(a[6]), Integer.parseInt(a[7])));
-		}
-		if(a[0].equals("V")) {
-			availableChampions.add(new Villain(a[1], Integer.parseInt(a[2]), Integer.parseInt(a[3]), Integer.parseInt(a[4]), Integer.parseInt(a[5]), Integer.parseInt(a[6]), Integer.parseInt(a[7])));
-		}
-		else {
-			availableChampions.add(new AntiHero(a[1], Integer.parseInt(a[2]), Integer.parseInt(a[3]), Integer.parseInt(a[4]), Integer.parseInt(a[5]), Integer.parseInt(a[6]), Integer.parseInt(a[7])));
+		//while loop needs new condition		
+		while(true) {
+			if(a[0].equals("H")) {
+				availableChampions.add(new Hero(a[1], Integer.parseInt(a[2]), Integer.parseInt(a[3]), Integer.parseInt(a[4]), Integer.parseInt(a[5]), Integer.parseInt(a[6]), Integer.parseInt(a[7])));
+			}
+			if(a[0].equals("V")) {
+				availableChampions.add(new Villain(a[1], Integer.parseInt(a[2]), Integer.parseInt(a[3]), Integer.parseInt(a[4]), Integer.parseInt(a[5]), Integer.parseInt(a[6]), Integer.parseInt(a[7])));
+			}
+			else {
+				availableChampions.add(new AntiHero(a[1], Integer.parseInt(a[2]), Integer.parseInt(a[3]), Integer.parseInt(a[4]), Integer.parseInt(a[5]), Integer.parseInt(a[6]), Integer.parseInt(a[7])));
+			}
 		}
 	}
 }
