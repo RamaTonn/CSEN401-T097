@@ -20,9 +20,11 @@ public class Game {
 	final private static int BOARDHEIGHT=5;
 	final private static int BOARDWIDTH=5;
 
-	public Game(Player first, Player second){
+	public Game(Player first, Player second) throws Exception{
 		this.firstPlayer = first;
 		this.secondPlayer = second;
+		loadChampions("Champions.csv");
+		loadAbilities("Abilities.csv");
 		placeChampions();
 		placeCovers();
 	}
@@ -96,7 +98,7 @@ public class Game {
 		BufferedReader br= new BufferedReader(new FileReader(filePath));
 		availableAbilities=new ArrayList<Ability>();
 		//while loop needs a condition
-		while(br.readLine()!=null) {
+		while(br.readLine()!=null && br.readLine().length()!=0) {
 			String[] a = br.readLine().split(",");
 			switch(a[0]) {
 			case "DMG":
@@ -142,9 +144,9 @@ public class Game {
 	}
 
 	public static void loadChampions(String filePath) throws Exception {
-		BufferedReader br= new BufferedReader(new FileReader("Champions.csv"));
+		BufferedReader br= new BufferedReader(new FileReader(filePath));
 		availableChampions = new ArrayList<Champion>();				
-		while(br.readLine()!=null) {
+		while(br.readLine()!=null && br.readLine().length()!=0) {
 			String[] a = br.readLine().split(",");
 			switch(a[0]) {
 			case "H":
