@@ -95,18 +95,15 @@ public class Game {
 	public static void loadAbilities(String filePath) throws Exception {
 		BufferedReader br= new BufferedReader(new FileReader(filePath));
 		availableAbilities=new ArrayList<Ability>();
-		String[] a = br.readLine().split(",");
 		//while loop needs a condition
-		while(true) {
-			if(a[0].equals("DMG")){
-				availableAbilities.add(new DamagingAbility(a[1], Integer.parseInt(a[2]), 
-						Integer.parseInt(a[4]), Integer.parseInt(a[3]), AreaOfEffect.valueOf(a[5]),Integer.parseInt(a[6]),Integer.parseInt(a[7])));
-			}
-			if(a[0].equals("HEL")){
-				availableAbilities.add(new HealingAbility(a[1], Integer.parseInt(a[2]), 
-						Integer.parseInt(a[4]), Integer.parseInt(a[3]), AreaOfEffect.valueOf(a[5]),Integer.parseInt(a[6]),Integer.parseInt(a[7])));
-			}
-			else {
+		while(br.readLine()!=null) {
+			String[] a = br.readLine().split(",");
+			switch(a[0]) {
+			case "DMG":
+				availableAbilities.add(new DamagingAbility(a[1], Integer.parseInt(a[2]), Integer.parseInt(a[4]), Integer.parseInt(a[3]), AreaOfEffect.valueOf(a[5]),Integer.parseInt(a[6]),Integer.parseInt(a[7])));
+			case "HEL":
+				availableAbilities.add(new HealingAbility(a[1], Integer.parseInt(a[2]), Integer.parseInt(a[4]), Integer.parseInt(a[3]), AreaOfEffect.valueOf(a[5]),Integer.parseInt(a[6]),Integer.parseInt(a[7])));
+			case "CC":
 				switch(a[7]) {
 				case "Disarm":
 					availableAbilities.add(new CrowdControlAbility(a[1], Integer.parseInt(a[2]), Integer.parseInt(a[4]), Integer.parseInt(a[3]), AreaOfEffect.valueOf(a[5]),Integer.parseInt(a[6]),new Disarm(a[1], Integer.parseInt(a[8]))));
@@ -138,6 +135,7 @@ public class Game {
 				case "Stun":
 					availableAbilities.add(new CrowdControlAbility(a[1], Integer.parseInt(a[2]), Integer.parseInt(a[4]), Integer.parseInt(a[3]), AreaOfEffect.valueOf(a[5]),Integer.parseInt(a[6]),new Stun(a[1], Integer.parseInt(a[8]))));
 					break;
+
 				}
 			}
 		}
@@ -145,26 +143,24 @@ public class Game {
 
 	public static void loadChampions(String filePath) throws Exception {
 		BufferedReader br= new BufferedReader(new FileReader("Champions.csv"));
-		availableChampions = new ArrayList<Champion>();
-		String[] a = br.readLine().split(",");
-		//while loop needs new condition		
-		while(true) {
-			if(a[0].equals("H")) {
+		availableChampions = new ArrayList<Champion>();				
+		while(br.readLine()!=null) {
+			String[] a = br.readLine().split(",");
+			switch(a[0]) {
+			case "H":
 				availableChampions.add(new Hero(a[1], Integer.parseInt(a[2]), Integer.parseInt(a[3]), Integer.parseInt(a[4]), Integer.parseInt(a[5]), Integer.parseInt(a[6]), Integer.parseInt(a[7])));
-			}
-			if(a[0].equals("V")) {
+				break;
+			case "V":
 				availableChampions.add(new Villain(a[1], Integer.parseInt(a[2]), Integer.parseInt(a[3]), Integer.parseInt(a[4]), Integer.parseInt(a[5]), Integer.parseInt(a[6]), Integer.parseInt(a[7])));
-			}
-			else {
+				break;
+			case "A":
 				availableChampions.add(new AntiHero(a[1], Integer.parseInt(a[2]), Integer.parseInt(a[3]), Integer.parseInt(a[4]), Integer.parseInt(a[5]), Integer.parseInt(a[6]), Integer.parseInt(a[7])));
+				break;
 			}
 		}
 	}
-	public static void main(String[] args) {
-		
-	}
 }
 
-//THIS IS A TEST COMMENT TO TEST PULL FROM GITHUB
+
 
 
