@@ -1,3 +1,6 @@
-/tests/
 /engine/
-/test.class
+/model/
+/effects/
+/exceptions/
+/abilities/
+/world/

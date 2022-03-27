@@ -8,9 +8,10 @@ public class Player {
 	private String name;
 	private Champion leader;
 	private ArrayList<Champion> team;
-
+	
 	public Player(String name) {
 		this.name = name;
+		team=new ArrayList<>();
 	}
 
 	public Champion getLeader() {
@@ -28,5 +29,5 @@ public class Player {
 	public ArrayList<Champion> getTeam() {
 		return team;
 	}
-
+	
 }

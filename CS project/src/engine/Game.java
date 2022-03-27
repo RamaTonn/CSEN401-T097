@@ -1,12 +1,13 @@
 package engine;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Random;
+import java.util.*;
 
 import model.abilities.*;
-import model.effects.*;
 import model.world.*;
+import model.effects.*;
+import java.awt.*;
+import exceptions.*;
 
 public class Game {
 	private Player firstPlayer;
@@ -17,14 +18,17 @@ public class Game {
 	private static ArrayList<Champion> availableChampions;
 	private static ArrayList<Ability> availableAbilities;
 	private PriorityQueue turnOrder;
-	final private static int BOARDHEIGHT=5;
-	final private static int BOARDWIDTH=5;
+	final private static int BOARDHEIGHT = 5;
+	final private static int BOARDWIDTH = 5;
 
-	public Game(Player first, Player second) throws Exception{
+	public Game(Player first, Player second) {
 		this.firstPlayer = first;
 		this.secondPlayer = second;
-		loadChampions("Champions.csv");
-		loadAbilities("Abilities.csv");
+		this.turnOrder = new PriorityQueue(6);
+		firstLeaderAbilityUsed = false;
+		secondLeaderAbilityUsed = false;
+		availableChampions = new ArrayList<Champion>();
+		availableAbilities = new ArrayList<Ability>();
 		placeChampions();
 		placeCovers();
 	}
@@ -70,99 +74,147 @@ public class Game {
 	}
 
 	private void placeChampions() {
-		ArrayList<Champion> p1=firstPlayer.getTeam();
-		ArrayList<Champion> p2=secondPlayer.getTeam();
-		board=new Object[BOARDWIDTH][BOARDHEIGHT];
-		for(int i = 1; i<4;i++){
-			board[0][i] = p1.get(i-1);
+		ArrayList<Champion> p1 = firstPlayer.getTeam();
+		ArrayList<Champion> p2 = secondPlayer.getTeam();
+		board = new Object[BOARDWIDTH][BOARDHEIGHT];
+		for (int i = 0; i < p1.size(); i++) {
+			board[0][i + 1] = p1.get(i);
+			p1.get(i).setLocation(new Point(0, i + 1));
 		}
-		for(int i = 1; i<4;i++){
-			board[4][i] = p2.get(i-1);
+		for (int i = 0; i < p2.size(); i++) {
+			board[4][i + 1] = p2.get(i);
+			p2.get(i).setLocation(new Point(4, i + 1));
 		}
 	}
 
 	private void placeCovers() {
 		int c = 0;
-		while(c!=5){
+		while (c < 5) {
 			Random r = new Random();
-			int x = r.nextInt(3)+1;
+			int x = r.nextInt(3) + 1;
 			int y = r.nextInt(5);
-			if(board[x][y] == null){
-				board[x][y] = new Cover(x, y);
+			if (board[x][y] == null) {
+				Cover v = new Cover(x, y);
+				board[x][y] = v;
 				c++;
 			}
-		}		
+		}
 	}
 
 	public static void loadAbilities(String filePath) throws Exception {
-		BufferedReader br= new BufferedReader(new FileReader(filePath));
-		availableAbilities=new ArrayList<Ability>();
-		//while loop needs a condition
-		while(br.readLine()!=null && br.readLine().length()!=0) {
-			String[] a = br.readLine().split(",");
-			switch(a[0]) {
-			case "DMG":
-				availableAbilities.add(new DamagingAbility(a[1], Integer.parseInt(a[2]), Integer.parseInt(a[4]), Integer.parseInt(a[3]), AreaOfEffect.valueOf(a[5]),Integer.parseInt(a[6]),Integer.parseInt(a[7])));
-			case "HEL":
-				availableAbilities.add(new HealingAbility(a[1], Integer.parseInt(a[2]), Integer.parseInt(a[4]), Integer.parseInt(a[3]), AreaOfEffect.valueOf(a[5]),Integer.parseInt(a[6]),Integer.parseInt(a[7])));
-			case "CC":
-				switch(a[7]) {
-				case "Disarm":
-					availableAbilities.add(new CrowdControlAbility(a[1], Integer.parseInt(a[2]), Integer.parseInt(a[4]), Integer.parseInt(a[3]), AreaOfEffect.valueOf(a[5]),Integer.parseInt(a[6]),new Disarm(a[1], Integer.parseInt(a[8]))));
-					break;
+		BufferedReader br = new BufferedReader(new FileReader(filePath));
+		String currLine = br.readLine();
+		String[] a = currLine.split(",");
+		while (currLine != null) {
+			a = currLine.split(",");
+			if (a[0].equals("DMG")) {
+				availableAbilities.add(new DamagingAbility(a[1], Integer
+						.parseInt(a[2]), Integer.parseInt(a[4]), Integer
+						.parseInt(a[3]), AreaOfEffect.valueOf(a[5]), Integer
+						.parseInt(a[6]), Integer.parseInt(a[7])));
+			}
+			if (a[0].equals("HEL")) {
+				availableAbilities.add(new HealingAbility(a[1], Integer
+						.parseInt(a[2]), Integer.parseInt(a[4]), Integer
+						.parseInt(a[3]), AreaOfEffect.valueOf(a[5]), Integer
+						.parseInt(a[6]), Integer.parseInt(a[7])));
+			}
+			if (a[0].equals("CC")) {
+				Effect x;
+				switch (a[7]) {
 				case "Dodge":
-					availableAbilities.add(new CrowdControlAbility(a[1], Integer.parseInt(a[2]), Integer.parseInt(a[4]), Integer.parseInt(a[3]), AreaOfEffect.valueOf(a[5]),Integer.parseInt(a[6]),new Dodge(a[1], Integer.parseInt(a[8]))));
+					x = new Dodge(Integer.parseInt(a[8]));
 					break;
-				case "Embrace":
-					availableAbilities.add(new CrowdControlAbility(a[1], Integer.parseInt(a[2]), Integer.parseInt(a[4]), Integer.parseInt(a[3]), AreaOfEffect.valueOf(a[5]),Integer.parseInt(a[6]),new Embrace(a[1], Integer.parseInt(a[8]))));
+				case "Shield":
+					x = new Shield(Integer.parseInt(a[8]));
 					break;
 				case "PowerUp":
-					availableAbilities.add(new CrowdControlAbility(a[1], Integer.parseInt(a[2]), Integer.parseInt(a[4]), Integer.parseInt(a[3]), AreaOfEffect.valueOf(a[5]),Integer.parseInt(a[6]),new PowerUp(a[1], Integer.parseInt(a[8]))));
-					break;
-				case "Root":
-					availableAbilities.add(new CrowdControlAbility(a[1], Integer.parseInt(a[2]), Integer.parseInt(a[4]), Integer.parseInt(a[3]), AreaOfEffect.valueOf(a[5]),Integer.parseInt(a[6]),new Root(a[1], Integer.parseInt(a[8]))));
-					break;	
-				case "Shield":
-					availableAbilities.add(new CrowdControlAbility(a[1], Integer.parseInt(a[2]), Integer.parseInt(a[4]), Integer.parseInt(a[3]), AreaOfEffect.valueOf(a[5]),Integer.parseInt(a[6]),new Shield(a[1], Integer.parseInt(a[8]))));
-					break;
-				case "Shock":
-					availableAbilities.add(new CrowdControlAbility(a[1], Integer.parseInt(a[2]), Integer.parseInt(a[4]), Integer.parseInt(a[3]), AreaOfEffect.valueOf(a[5]),Integer.parseInt(a[6]),new Shock(a[1], Integer.parseInt(a[8]))));
-					break;
-				case "Silence":
-					availableAbilities.add(new CrowdControlAbility(a[1], Integer.parseInt(a[2]), Integer.parseInt(a[4]), Integer.parseInt(a[3]), AreaOfEffect.valueOf(a[5]),Integer.parseInt(a[6]),new Silence(a[1], Integer.parseInt(a[8]))));
-					break;
-				case "SpeedUp":
-					availableAbilities.add(new CrowdControlAbility(a[1], Integer.parseInt(a[2]), Integer.parseInt(a[4]), Integer.parseInt(a[3]), AreaOfEffect.valueOf(a[5]),Integer.parseInt(a[6]),new SpeedUp(a[1], Integer.parseInt(a[8]))));
+					x = new PowerUp(Integer.parseInt(a[8]));
 					break;
 				case "Stun":
-					availableAbilities.add(new CrowdControlAbility(a[1], Integer.parseInt(a[2]), Integer.parseInt(a[4]), Integer.parseInt(a[3]), AreaOfEffect.valueOf(a[5]),Integer.parseInt(a[6]),new Stun(a[1], Integer.parseInt(a[8]))));
+					x = new Stun(Integer.parseInt(a[8]));
 					break;
-
+				case "Shock":
+					x = new Shock(Integer.parseInt(a[8]));
+					break;
+				case "SpeedUp":
+					x = new SpeedUp(Integer.parseInt(a[8]));
+					break;
+				case "Disarm":
+					x = new Disarm(Integer.parseInt(a[8]));
+					break;
+				case "Silence":
+					x = new Silence(Integer.parseInt(a[8]));
+					break;
+				case "Root":
+					x = new Root(Integer.parseInt(a[8]));
+					break;
+				case "Embrace":
+					x = new Embrace(Integer.parseInt(a[8]));
+					break;
+				default:
+					x = null;
 				}
+				availableAbilities.add(new CrowdControlAbility(a[1], Integer
+						.parseInt(a[2]), Integer.parseInt(a[4]), Integer
+						.parseInt(a[3]), AreaOfEffect.valueOf(a[5]), Integer
+						.parseInt(a[6]), x));
 			}
+			currLine = br.readLine();
+
 		}
+
 	}
 
 	public static void loadChampions(String filePath) throws Exception {
-		BufferedReader br= new BufferedReader(new FileReader(filePath));
-		availableChampions = new ArrayList<Champion>();				
-		while(br.readLine()!=null && br.readLine().length()!=0) {
-			String[] a = br.readLine().split(",");
-			switch(a[0]) {
-			case "H":
-				availableChampions.add(new Hero(a[1], Integer.parseInt(a[2]), Integer.parseInt(a[3]), Integer.parseInt(a[4]), Integer.parseInt(a[5]), Integer.parseInt(a[6]), Integer.parseInt(a[7])));
-				break;
-			case "V":
-				availableChampions.add(new Villain(a[1], Integer.parseInt(a[2]), Integer.parseInt(a[3]), Integer.parseInt(a[4]), Integer.parseInt(a[5]), Integer.parseInt(a[6]), Integer.parseInt(a[7])));
-				break;
-			case "A":
-				availableChampions.add(new AntiHero(a[1], Integer.parseInt(a[2]), Integer.parseInt(a[3]), Integer.parseInt(a[4]), Integer.parseInt(a[5]), Integer.parseInt(a[6]), Integer.parseInt(a[7])));
-				break;
+		BufferedReader br = new BufferedReader(new FileReader(filePath));
+		String currLine = br.readLine();
+		String[] a = currLine.split(",");
+		while (currLine != null) {
+			a = currLine.split(",");
+			if (a[0].equals("H")) {
+				ArrayList<Ability> h = new ArrayList<>();
+
+				Hero x = new Hero(a[1], Integer.parseInt(a[2]),
+						Integer.parseInt(a[3]), Integer.parseInt(a[4]),
+						Integer.parseInt(a[5]), Integer.parseInt(a[6]),
+						Integer.parseInt(a[7]));
+				for(int i=0;i<availableAbilities.size() && x.getAbilities().size()!=3;i++) {
+					if (availableAbilities.get(i).getName().equals(a[8])
+						|| availableAbilities.get(i).getName().equals(a[9])||availableAbilities.get(i).getName().equals(a[10]))
+					x.getAbilities().add(availableAbilities.get(i));
+							}
+				availableChampions.add(x);
 			}
+			if (a[0].equals("V")) {
+				Villain x = new Villain(a[1], Integer.parseInt(a[2]),
+						Integer.parseInt(a[3]), Integer.parseInt(a[4]),
+						Integer.parseInt(a[5]), Integer.parseInt(a[6]),
+						Integer.parseInt(a[7]));
+				        
+				for(int i=0;i<availableAbilities.size() && x.getAbilities().size()!=3 ;i++) {
+					if (availableAbilities.get(i).getName().equals(a[8])
+						|| availableAbilities.get(i).getName().equals(a[9])||availableAbilities.get(i).getName().equals(a[10]))
+					x.getAbilities().add(availableAbilities.get(i));
+				
+			}
+				availableChampions.add(x);
+
+			}
+			if (a[0].equals("A")) {
+				AntiHero x = new AntiHero(a[1], Integer.parseInt(a[2]),
+						Integer.parseInt(a[3]), Integer.parseInt(a[4]),
+						Integer.parseInt(a[5]), Integer.parseInt(a[6]),
+						Integer.parseInt(a[7]));
+				for(int i=0;i<availableAbilities.size() && x.getAbilities().size()!=3;i++) {
+					if (availableAbilities.get(i).getName().equals(a[8])
+							|| availableAbilities.get(i).getName().equals(a[9])||availableAbilities.get(i).getName().equals(a[10]))
+						x.getAbilities().add(availableAbilities.get(i));
+									}
+				availableChampions.add(x);
+			}
+			currLine = br.readLine();
 		}
 	}
+
 }
-
-
-
-
