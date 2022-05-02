@@ -1,12 +1,11 @@
 package model.abilities;
 
-public class HealingAbility extends Ability {
+public  class HealingAbility extends Ability {
 	private int healAmount;
 
-	public HealingAbility(String name, int cost, int baseCoolDown, int castRange,
-			AreaOfEffect area, int required, int healAmount) {
-		super(name, cost, baseCoolDown, castRange, area, required);
-		this.healAmount=healAmount;
+	public HealingAbility(String name,int cost, int baseCoolDown, int castRadius, AreaOfEffect area,int required, int healingAmount) {
+		super(name,cost, baseCoolDown, castRadius, area,required);
+		this.healAmount = healingAmount;
 	}
 
 	public int getHealAmount() {
@@ -17,5 +16,8 @@ public class HealingAbility extends Ability {
 		this.healAmount = healAmount;
 	}
 
+	
+
+	
 
 }

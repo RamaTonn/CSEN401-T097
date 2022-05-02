@@ -1,14 +1,13 @@
 package model.world;
 
-import java.util.*;
+import java.awt.Point;
+import java.util.ArrayList;
 
-import exceptions.UnallowedMovementException;
-import model.abilities.*;
-import model.effects.*;
 
-import java.awt.*;
+import model.abilities.Ability;
+import model.effects.Effect;
 
-public class Champion implements Comparable {
+public class Champion {
 	private String name;
 	private int maxHP;
 	private int currentHP;
@@ -22,59 +21,60 @@ public class Champion implements Comparable {
 	private ArrayList<Effect> appliedEffects;
 	private Condition condition;
 	private Point location;
+	
 
-	public Champion(String name, int maxHP, int mana, int maxActions, int speed, int attackRange, int attackDamage) {
+	public Champion(String name, int maxHP, int mana, int actions, int speed, int attackRange, int attackDamage) {
 		this.name = name;
 		this.maxHP = maxHP;
-		this.currentHP = maxHP;
-		this.currentActionPoints = maxActions;
 		this.mana = mana;
-		this.maxActionPointsPerTurn = maxActions;
+		this.currentHP = this.maxHP;
+		this.maxActionPointsPerTurn = actions;
 		this.speed = speed;
 		this.attackRange = attackRange;
 		this.attackDamage = attackDamage;
 		this.condition = Condition.ACTIVE;
-		this.abilities = new ArrayList<>();
-		this.appliedEffects = new ArrayList<>();
+		this.abilities = new ArrayList<Ability>();
+		this.appliedEffects = new ArrayList<Effect>();
+		this.currentActionPoints=maxActionPointsPerTurn;
 	}
 
+	public int getMaxHP() {
+		return maxHP;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setCurrentHP(int hp) {
+
+		if (hp < 0) {
+			currentHP = 0;
+			
+		} 
+		else if (hp > maxHP)
+			currentHP = maxHP;
+		else
+			currentHP = hp;
+
+	}
+
+	
 	public int getCurrentHP() {
+
 		return currentHP;
 	}
 
-	public void setCurrentHP(int currentHP) {
-		if (currentHP > 0 && currentHP <= maxHP) {
-			this.currentHP = currentHP;
-		} else {
-			if (currentHP <= 0) {
-				this.currentHP = 0;
-				this.condition = Condition.KNOCKEDOUT;
-			} else {
-				if (currentHP > maxHP) {
-
-				}
-				this.currentHP = maxHP;
-			}
-		}
+	public ArrayList<Effect> getAppliedEffects() {
+		return appliedEffects;
 	}
 
-	public int getMaxActionPointsPerTurn() {
-		return maxActionPointsPerTurn;
+	public int getMana() {
+		return mana;
 	}
 
-	public void setCurrentActionPoints(int currentActionPoints) {
-		if(currentActionPoints < 0)
-			this.currentActionPoints = 0;
-		if(currentActionPoints > maxActionPointsPerTurn)
-			this.currentActionPoints = maxActionPointsPerTurn;
-		else
-			this.currentActionPoints = currentActionPoints;
-	}
-
-	public void setMaxActionPointsPerTurn(int maxActionPointsPerTurn) {
-		if(maxActionPointsPerTurn < 0)
-			this.maxActionPointsPerTurn = 0;
-		this.maxActionPointsPerTurn = maxActionPointsPerTurn;
+	public void setMana(int mana) {
+		this.mana = mana;
 	}
 
 	public int getAttackDamage() {
@@ -89,44 +89,11 @@ public class Champion implements Comparable {
 		return speed;
 	}
 
-	public void setSpeed(int speed) {
-		this.speed = speed;
-	}
-
-	public Point getLocation() {
-		return location;
-	}
-
-	public void setLocation(Point location) {
-		this.location = location;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public int getMaxHP() {
-		return maxHP;
-	}
-
-	public int getMana() {
-		return mana;
-	}
-
-	public int getCurrentActionPoints() {
-		return currentActionPoints;
-	}
-
-	public int getAttackRange() {
-		return attackRange;
-	}
-
-	public ArrayList<Ability> getAbilities() {
-		return abilities;
-	}
-
-	public ArrayList<Effect> getAppliedEffects() {
-		return appliedEffects;
+	public void setSpeed(int currentSpeed) {
+		if (currentSpeed < 0)
+			this.speed = 0;
+		else
+			this.speed = currentSpeed;
 	}
 
 	public Condition getCondition() {
@@ -137,24 +104,44 @@ public class Champion implements Comparable {
 		this.condition = condition;
 	}
 
-	public void setMana(int mana) {
-		if (mana > 0) {
-			this.mana = mana;
-		} else {
-			this.mana = 0;
-			this.condition = Condition.INACTIVE;
-		}
+	public Point getLocation() {
+		return location;
 	}
 
-	public int compareTo(Object o) {
-		Champion c = (Champion) o;
-		if (c.getSpeed() > this.getSpeed()) {
-			return 1;
-		}
-		if (c.getSpeed() < this.getSpeed()) {
-			return -1;
-		}
-		return 0;
+	public void setLocation(Point currentLocation) {
+		this.location = currentLocation;
 	}
+
+	public int getAttackRange() {
+		return attackRange;
+	}
+
+	public ArrayList<Ability> getAbilities() {
+		return abilities;
+	}
+
+	public int getCurrentActionPoints() {
+		return currentActionPoints;
+	}
+
+	public void setCurrentActionPoints(int currentActionPoints) {
+		if(currentActionPoints>maxActionPointsPerTurn)
+			currentActionPoints=maxActionPointsPerTurn;
+		else 
+			if(currentActionPoints<0)
+			currentActionPoints=0;
+		this.currentActionPoints = currentActionPoints;
+	}
+
+	public int getMaxActionPointsPerTurn() {
+		return maxActionPointsPerTurn;
+	}
+
+	public void setMaxActionPointsPerTurn(int maxActionPointsPerTurn) {
+		this.maxActionPointsPerTurn = maxActionPointsPerTurn;
+	}
+
+	
+	
 
 }
