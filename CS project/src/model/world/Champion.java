@@ -3,11 +3,14 @@ package model.world;
 import java.awt.Point;
 import java.util.ArrayList;
 
-
+import engine.Game;
+import exceptions.AbilityUseException;
+import exceptions.NotEnoughResourcesException;
+import exceptions.UnallowedMovementException;
 import model.abilities.Ability;
 import model.effects.Effect;
 
-public class Champion {
+public class Champion implements Damageable ,Comparable{
 	private String name;
 	private int maxHP;
 	private int currentHP;
@@ -108,7 +111,9 @@ public class Champion {
 		return location;
 	}
 
-	public void setLocation(Point currentLocation) {
+	public void setLocation(Point currentLocation) throws UnallowedMovementException   {
+		if(condition.equals(Condition.INACTIVE)||condition.equals(Condition.ROOTED))
+		   throw new UnallowedMovementException();
 		this.location = currentLocation;
 	}
 
@@ -141,7 +146,19 @@ public class Champion {
 		this.maxActionPointsPerTurn = maxActionPointsPerTurn;
 	}
 
-	
-	
+	@Override
+	public int compareTo(Object o) {
+		Champion champ =(Champion)o;
+		if(this.getSpeed()< champ.getSpeed())
+		      return -1;
+		else if(this.getSpeed() > champ.getSpeed())
+			return 1;
+		else if(this.getSpeed() == champ.getSpeed())
+			if(this.getName().compareTo(champ.getName())<0)
+				return 1; 
+			else if(this.getName().compareTo(champ.getName())>0)
+				return -1;
+	     return 0;
+		}
+	}
 
-}

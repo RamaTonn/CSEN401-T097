@@ -10,4 +10,7 @@ public class NotEnoughResourcesException extends GameActionException {
 		super(s);
 		
 	}
+	
+	
+	
 }
