@@ -59,12 +59,14 @@ public class Game {
 		placeChampions();
 		placeCovers();
 	}
-     public void fillTurnOrder() {
-    	 for(Champion champ :firstPlayer.getTeam())
-    	      turnOrder.insert((Comparable)champ);
-    	 for(Champion champ :secondPlayer.getTeam())
-    		 turnOrder.insert((Comparable)champ);
-     }
+	
+	public void fillTurnOrder() {
+		for(Champion champ :firstPlayer.getTeam())
+			turnOrder.insert((Comparable)champ);
+		for(Champion champ :secondPlayer.getTeam())
+			turnOrder.insert((Comparable)champ);
+	}
+	
 	public static void loadAbilities(String filePath) throws IOException {
 		BufferedReader br = new BufferedReader(new FileReader(filePath));
 		String line = br.readLine();
@@ -214,7 +216,7 @@ public class Game {
 			c.setLocation(new Point(BOARDHEIGHT - 1, i));
 			i++;
 		}
-	
+
 	}
 
 	public static ArrayList<Champion> getAvailableChampions() {
@@ -256,22 +258,49 @@ public class Game {
 	public static int getBoardheight() {
 		return BOARDHEIGHT;
 	}
-	
+
 	public Champion getCurrentChampion() {
 		Champion champ = (Champion)turnOrder.remove();
-		
+
 		return champ;
 	}
-	public void move(Direction d) throws UnallowedMovementException  {
+	
+	public Player checkGameOver() {
+		boolean p1 = false;
+		boolean p2 = false;
+		
+		for(Champion champ:firstPlayer.getTeam()) {
+			if(champ.getCondition() != Condition.KNOCKEDOUT)
+				p1 = true;
+		}
+		
+		for(Champion champ:secondPlayer.getTeam()) {
+			if(champ.getCondition() != Condition.KNOCKEDOUT)
+				p2 = true;
+		}
+		
+		if(p1 == p2)
+			return null;
+		else if(p1)
+			return firstPlayer;
+		else
+			return secondPlayer;
+	}
+	
+	public void move(Direction d) throws UnallowedMovementException, NotEnoughResourcesException  {
 		Champion champ = getCurrentChampion() ;
 		Point position =champ.getLocation();
 		int x= position.x;
 		int y= position.y;
+		
 		if(champ.getCondition().equals(Condition.INACTIVE)||champ.getCondition().equals(Condition.KNOCKEDOUT)||champ.getCondition().equals(Condition.ROOTED))
+			
 			throw new UnallowedMovementException();
+		
 		else if(champ.getCurrentActionPoints()==0)
-			throw new UnallowedMovementException();
-	   else if(d.equals(Direction.LEFT)){
+			throw new NotEnoughResourcesException();
+		
+		else if(d.equals(Direction.LEFT)){
 			x--;
 			if(x<0)
 				throw new UnallowedMovementException();
@@ -281,7 +310,7 @@ public class Game {
 				champ.setLocation(new Point(x,y));
 				champ.setCurrentActionPoints(champ.getCurrentActionPoints()-1);
 			}
-			
+
 		}
 		if(d.equals(Direction.RIGHT)) {
 			x++;
@@ -313,21 +342,22 @@ public class Game {
 				throw new UnallowedMovementException();
 			else { 
 				champ.setLocation(new Point(x,y));
-			    champ.setCurrentActionPoints(champ.getCurrentActionPoints()-1);
+				champ.setCurrentActionPoints(champ.getCurrentActionPoints()-1);
 			}
 		}
 	}
+	
 	public void attack(Direction d) throws NotEnoughResourcesException, ChampionDisarmedException {
-		    Champion c =  getCurrentChampion();
-			if(c.getCurrentActionPoints()<2)
-				throw new NotEnoughResourcesException();
-			for (Effect e : c.getAppliedEffects()){			
-				if(e.getName().equals("Disarm") && e.getDuration()!=0)
-                    throw new ChampionDisarmedException();	 	
-	 		 }
-			// if(c.getCondition().equals(Condition.INACTIVE))
-			
-		
+		Champion c =  getCurrentChampion();
+		if(c.getCurrentActionPoints()<2)
+			throw new NotEnoughResourcesException();
+		for (Effect e : c.getAppliedEffects()){			
+			if(e.getName().equals("Disarm") && e.getDuration()!=0)
+				throw new ChampionDisarmedException();	 	
+		}
+		// if(c.getCondition().equals(Condition.INACTIVE))
+
+
 	}
 }
 

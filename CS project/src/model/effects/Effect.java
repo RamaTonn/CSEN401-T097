@@ -45,12 +45,11 @@ public abstract class Effect implements Cloneable {
 		return type;
 	}
 	
-	
-	
-//	public Object clone() throws CloneNotSupportedException{}
-	abstract public void apply(Champion c) throws NotEnoughResourcesException, AbilityUseException,InvalidTargetException ;
-	public void remove(Champion c){
-		
+	public void apply(Champion c) throws NotEnoughResourcesException, AbilityUseException,InvalidTargetException{
+		c.getAppliedEffects().add(this);
+	}
+
+	public void remove(Champion c){		
 	}
 }
 
