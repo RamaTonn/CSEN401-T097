@@ -1,6 +1,10 @@
 package model.abilities;
 
+import java.util.ArrayList;
+
 import model.effects.Effect;
+import model.world.*;
+import exceptions.*;
 
 public class CrowdControlAbility extends Ability {
 	private Effect effect;
@@ -15,5 +19,10 @@ public class CrowdControlAbility extends Ability {
 	public Effect getEffect() {
 		return effect;
 	}
-
+	public void execute(ArrayList<Damageable> targets) throws NotEnoughResourcesException, AbilityUseException, InvalidTargetException {
+		for(Damageable c: targets){
+		
+		 this.effect.apply((Champion)c);
+		}
+}
 }

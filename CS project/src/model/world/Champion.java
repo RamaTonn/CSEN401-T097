@@ -160,5 +160,8 @@ public class Champion implements Damageable ,Comparable{
 				return -1;
 	     return 0;
 		}
+	public void useLeaderAbility(ArrayList<Champion> targets){
+		
+	}
 	}
 

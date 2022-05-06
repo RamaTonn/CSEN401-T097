@@ -2,6 +2,9 @@ package model.abilities;
 
 import java.util.ArrayList;
 
+import exceptions.AbilityUseException;
+import exceptions.InvalidTargetException;
+import exceptions.NotEnoughResourcesException;
 import model.world.Damageable;
 
 public abstract class Ability  {
@@ -58,6 +61,7 @@ public abstract class Ability  {
 	public int getRequiredActionPoints() {
 		return requiredActionPoints;
 	}
+	abstract public void execute(ArrayList<Damageable> targets) throws NotEnoughResourcesException, AbilityUseException, InvalidTargetException ;
 	
 	
 }
