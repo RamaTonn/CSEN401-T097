@@ -819,39 +819,45 @@ public class Game {
 		}
 	}
 
+	// Implemented try catch blocks.
 	public void useLeaderAbility() throws LeaderAbilityAlreadyUsedException, LeaderNotCurrentException{
-		Champion c = getCurrentChampion();
-		if(!isLeader()) {
-			throw new LeaderNotCurrentException();
+		try {
+			Champion c = getCurrentChampion();
+			if(!isLeader()) {
+				throw new LeaderNotCurrentException();
+			}
+			if(isLeader()) {
+				if(isFirstPlayer() && firstLeaderAbilityUsed) {
+					throw new LeaderAbilityAlreadyUsedException();
+				}
+				if(!isFirstPlayer() && secondLeaderAbilityUsed) {
+					throw new LeaderAbilityAlreadyUsedException();
+				}
+			}
+			ArrayList<Champion> targets = new ArrayList<Champion>();		
+			if (c instanceof Hero) {
+				for(Damageable d: getAlly(c)) {
+					targets.add((Champion)d);
+				}
+			}
+			else if(c instanceof Villain) {
+				for(Damageable d: getEnemy(c)) {
+					targets.add((Champion)d);
+				}
+			}
+			else {
+				for(Damageable d: getAlly(c)) {
+					targets.add((Champion)d);
+				}
+				for(Damageable d: getEnemy(c)) {
+					targets.add((Champion)d);
+				}
+			}
+			c.useLeaderAbility(targets);
+		} catch (LeaderNotCurrentException | LeaderAbilityAlreadyUsedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-		if(isLeader()) {
-			if(isFirstPlayer() && firstLeaderAbilityUsed) {
-				throw new LeaderAbilityAlreadyUsedException();
-			}
-			if(!isFirstPlayer() && secondLeaderAbilityUsed) {
-				throw new LeaderAbilityAlreadyUsedException();
-			}
-		}
-		ArrayList<Champion> targets = new ArrayList<Champion>();		
-		if (c instanceof Hero) {
-			for(Damageable d: getAlly(c)) {
-				targets.add((Champion)d);
-			}
-		}
-		else if(c instanceof Villain) {
-			for(Damageable d: getEnemy(c)) {
-				targets.add((Champion)d);
-			}
-		}
-		else {
-			for(Damageable d: getAlly(c)) {
-				targets.add((Champion)d);
-			}
-			for(Damageable d: getEnemy(c)) {
-				targets.add((Champion)d);
-			}
-		}
-		c.useLeaderAbility(targets);
 	}
 	
 	//helper
