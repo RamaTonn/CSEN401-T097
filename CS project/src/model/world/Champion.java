@@ -10,7 +10,7 @@ import exceptions.UnallowedMovementException;
 import model.abilities.Ability;
 import model.effects.Effect;
 
-public class Champion implements Damageable ,Comparable{
+public abstract class Champion implements Damageable ,Comparable{
 	private String name;
 	private int maxHP;
 	private int currentHP;
@@ -24,7 +24,7 @@ public class Champion implements Damageable ,Comparable{
 	private ArrayList<Effect> appliedEffects;
 	private Condition condition;
 	private Point location;
-
+	
 
 	public Champion(String name, int maxHP, int mana, int actions, int speed, int attackRange, int attackDamage) {
 		this.name = name;
@@ -53,7 +53,7 @@ public class Champion implements Damageable ,Comparable{
 
 		if (hp < 0) {
 			currentHP = 0;
-
+			
 		} 
 		else if (hp > maxHP)
 			currentHP = maxHP;
@@ -62,6 +62,7 @@ public class Champion implements Damageable ,Comparable{
 
 	}
 
+	
 	public int getCurrentHP() {
 
 		return currentHP;
@@ -112,7 +113,7 @@ public class Champion implements Damageable ,Comparable{
 
 	public void setLocation(Point currentLocation) throws UnallowedMovementException   {
 		if(condition.equals(Condition.INACTIVE)||condition.equals(Condition.ROOTED))
-			throw new UnallowedMovementException();
+		   throw new UnallowedMovementException();
 		this.location = currentLocation;
 	}
 
@@ -133,7 +134,7 @@ public class Champion implements Damageable ,Comparable{
 			currentActionPoints=maxActionPointsPerTurn;
 		else 
 			if(currentActionPoints<0)
-				currentActionPoints=0;
+			currentActionPoints=0;
 		this.currentActionPoints = currentActionPoints;
 	}
 
@@ -149,7 +150,7 @@ public class Champion implements Damageable ,Comparable{
 	public int compareTo(Object o) {
 		Champion champ =(Champion)o;
 		if(this.getSpeed()< champ.getSpeed())
-			return -1;
+		      return -1;
 		else if(this.getSpeed() > champ.getSpeed())
 			return 1;
 		else if(this.getSpeed() == champ.getSpeed())
@@ -157,10 +158,19 @@ public class Champion implements Damageable ,Comparable{
 				return 1; 
 			else if(this.getName().compareTo(champ.getName())>0)
 				return -1;
-		return 0;
+	     return 0;
+		}
+abstract public void useLeaderAbility(ArrayList<Champion> targets);
+public boolean equals(Object o){
+	Champion c=(Champion) o;
+	if(c.getName().equals(this.getName()) && c.getMaxHP()==this.getMaxHP() && this.getCurrentHP()==c.getCurrentHP() 
+			&& c.getMana()==this.getMana() && c.getMaxActionPointsPerTurn()==this.getMaxActionPointsPerTurn() 
+			&& c.getCurrentActionPoints()==this.getCurrentActionPoints() && c.getAttackRange()==this.getAttackRange()
+			&& c.getAttackDamage()==this.getAttackDamage() && c.getSpeed()==this.getSpeed() && c.getAbilities().equals(this.getAbilities())
+			&& c.getAppliedEffects().equals(this.getAppliedEffects()) && c.getCondition().equals(this.getCondition())){
+		return true;
 	}
-	
-	public void useLeaderAbility(ArrayList<Champion> targets){
-	}
+	return false;
 }
+	}
 

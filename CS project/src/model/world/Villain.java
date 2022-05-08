@@ -1,5 +1,5 @@
 package model.world;
-
+import java.util.*;
 
 
 public class Villain extends Champion {
@@ -8,6 +8,12 @@ public class Villain extends Champion {
 		super(name, maxHP, maxMana, actions, speed, attackRange, attackDamage);
 
 	}
-
+	public void useLeaderAbility(ArrayList<Champion> targets){
+		for(Champion c : targets){
+			if(c.getCurrentHP()< (c.getMaxHP()*0.3)){
+				c.setCondition(Condition.KNOCKEDOUT);
+			}
+		}
+	}
 	
 }
