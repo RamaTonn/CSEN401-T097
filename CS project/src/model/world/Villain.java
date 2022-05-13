@@ -2,6 +2,10 @@ package model.world;
 import java.util.*;
 
 
+import engine.Game.*;
+import exceptions.UnallowedMovementException;
+
+
 public class Villain extends Champion {
 
 	public Villain(String name, int maxHP, int maxMana, int actions, int speed, int attackRange, int attackDamage) {
@@ -12,8 +16,10 @@ public class Villain extends Champion {
 		for(Champion c : targets){
 			if(c.getCurrentHP()< (c.getMaxHP()*0.3)){
 				c.setCondition(Condition.KNOCKEDOUT);
-			}
+				
 		}
+	}
+	
 	}
 	
 }

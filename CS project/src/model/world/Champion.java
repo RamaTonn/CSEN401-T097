@@ -4,13 +4,14 @@ import java.awt.Point;
 import java.util.ArrayList;
 
 import engine.Game;
+import engine.*;
 import exceptions.AbilityUseException;
 import exceptions.NotEnoughResourcesException;
 import exceptions.UnallowedMovementException;
 import model.abilities.Ability;
 import model.effects.Effect;
 
-public abstract class Champion implements Damageable ,Comparable{
+public abstract class Champion implements Damageable , Comparable{
 	private String name;
 	private int maxHP;
 	private int currentHP;
@@ -148,7 +149,7 @@ public abstract class Champion implements Damageable ,Comparable{
 
 	@Override
 	public int compareTo(Object o) {
-		Champion champ =(Champion)o;
+	Champion champ =(Champion)o;
 		if(this.getSpeed()< champ.getSpeed())
 		      return -1;
 		else if(this.getSpeed() > champ.getSpeed())
@@ -160,8 +161,11 @@ public abstract class Champion implements Damageable ,Comparable{
 				return -1;
 	     return 0;
 		}
-abstract public void useLeaderAbility(ArrayList<Champion> targets);
+abstract public void useLeaderAbility(ArrayList<Champion> targets) ;
+	
+
 public boolean equals(Object o){
+	
 	Champion c=(Champion) o;
 	if(c.getName().equals(this.getName()) && c.getMaxHP()==this.getMaxHP() && this.getCurrentHP()==c.getCurrentHP() 
 			&& c.getMana()==this.getMana() && c.getMaxActionPointsPerTurn()==this.getMaxActionPointsPerTurn() 

@@ -21,12 +21,14 @@ public  class HealingAbility extends Ability {
 	}
 
 	public void execute(ArrayList<Damageable> targets) {
+			
 		for(Damageable c: targets){
 			c.setCurrentHP(c.getCurrentHP()+this.healAmount);
 		}
+		this.setCurrentCooldown(this.getBaseCooldown());
 		
 	}
-
+	
 	
 
 	

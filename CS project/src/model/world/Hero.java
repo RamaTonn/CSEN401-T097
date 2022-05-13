@@ -12,13 +12,14 @@ public class Hero extends Champion {
 	}
 	public void useLeaderAbility(ArrayList<Champion> targets){
 		for(Champion c : targets){
-			for(Effect f: c.getAppliedEffects()){
-				if(f.getType().equals(EffectType.DEBUFF)){
-					f.remove(c);
+			for(int i =0; i < c.getAppliedEffects().size(); i++){
+				if(c.getAppliedEffects().get(i).getType().equals(EffectType.DEBUFF)){
+					c.getAppliedEffects().get(i).remove(c);
 				}
-				Embrace e=new Embrace(2);
-				e.apply(c);
 			}
+				Embrace e=new Embrace(2);
+				c.getAppliedEffects().add(e);
+			
 					}
 	}
 	

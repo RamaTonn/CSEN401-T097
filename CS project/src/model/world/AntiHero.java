@@ -1,6 +1,8 @@
 package model.world;
 import java.util.*;
 import model.effects.*;
+import engine.Game;
+import engine.Game.*;
 public class AntiHero extends Champion {
 
 	public AntiHero(String name, int maxHP, int maxMana, int actions, int speed, int attackRange, int attackDamage) {
@@ -9,8 +11,12 @@ public class AntiHero extends Champion {
 	}
 	public void useLeaderAbility(ArrayList<Champion> targets){
 		for(Champion c : targets){
+		
 			Stun s=new Stun(2);
-			s.apply(c);
+			c.getAppliedEffects().add(s);
+		
 		}
+		
 	}
+	
 }
