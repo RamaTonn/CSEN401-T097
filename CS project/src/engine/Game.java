@@ -348,7 +348,7 @@ public class Game {
 		return null;
 	}
 
-	public void move(Direction d) throws UnallowedMovementException {
+	public void move(Direction d) throws UnallowedMovementException, NotEnoughResourcesException {
 		if (!isFirstPlayer()) {
 			if (d == Direction.UP)
 				d = Direction.DOWN;
@@ -359,8 +359,13 @@ public class Game {
 			if (d == Direction.RIGHT)
 				d = Direction.LEFT;
 		}
-
+		
 		Champion c = getCurrentChampion();
+		
+		if(c.getCurrentActionPoints() < 1) {
+			throw new NotEnoughResourcesException();
+		}
+		
 		int x = c.getLocation().x;
 		int y = c.getLocation().y;
 		if (d == Direction.UP) {
@@ -370,7 +375,8 @@ public class Game {
 			if (board[x][y + 1] != null) {
 				throw new UnallowedMovementException();
 			} else {
-				c.setLocation(new Point(x, y + 1));
+				c.getLocation().move(x, y+1);;
+				board[x][y] = null;
 			}
 		}
 
@@ -381,18 +387,20 @@ public class Game {
 			if (board[x][y - 1] != null) {
 				throw new UnallowedMovementException();
 			} else {
-				c.setLocation(new Point(x, y - 1));
+				c.getLocation().move(x, y - 1);
+				board[x][y] = null;
 			}
 		}
 
 		if (d == Direction.RIGHT) {
-			if (x + 1 >= BOARDWIDTH) {
+			if (x + 1 > 4) {
 				throw new UnallowedMovementException();
 			}
 			if (board[x + 1][y] != null) {
 				throw new UnallowedMovementException();
 			} else {
-				c.setLocation(new Point(x + 1, y));
+				c.getLocation().move(x+1, y);
+				board[x][y] = null;
 			}
 		}
 
@@ -403,7 +411,8 @@ public class Game {
 			if (board[x - 1][y] != null) {
 				throw new UnallowedMovementException();
 			} else {
-				c.setLocation(new Point(x - 1, y));
+				c.getLocation().move(x - 1, y);
+				board[x][y] = null;
 			}
 		}
 
@@ -411,6 +420,7 @@ public class Game {
 
 	// Implemented try catch blocks
 	public void attack(Direction d) throws NotEnoughResourcesException, InvalidTargetException {
+		
 		Champion c = getCurrentChampion();
 		if (!isFirstPlayer()) {
 			if (d == Direction.UP)
@@ -448,7 +458,9 @@ public class Game {
 				|| (c instanceof AntiHero && ct instanceof Villain) || (c instanceof AntiHero && ct instanceof Hero)
 				|| (c instanceof Villain && ct instanceof Hero) || (c instanceof Villain && ct instanceof AntiHero)) {
 			ct.setCurrentHP(ct.getCurrentHP() - (int) (c.getAttackDamage() * 1.5));
-		} else {
+		} 
+		
+		else {
 			ct.setCurrentHP(ct.getCurrentHP() - c.getAttackDamage());
 		}
 
@@ -525,7 +537,10 @@ public class Game {
 				throw new AbilityUseException();
 			}
 		}
-
+		ArrayList<Damageable> targets = inRange(getTargets(d, c, a), c, a);
+		for(int i = 1; i <targets.size();i++) {
+			targets.remove(i);
+		}
 		a.execute(inRange(getTargets(d, c, a), c, a));
 
 		if (a instanceof DamagingAbility) {
@@ -1027,11 +1042,13 @@ public class Game {
 
 	public void removeDamageable(ArrayList<Damageable> d) {
 		for (Damageable c : d) {
-
-			if (c instanceof Champion && ((Champion) c).getCondition() == Condition.KNOCKEDOUT)
+			if(c instanceof Champion && c.getCurrentHP() == 0) {
+				((Champion)c).setCondition(Condition.KNOCKEDOUT);
 				board[c.getLocation().x][c.getLocation().y] = null;
-			else if (c instanceof Cover && ((Cover) c).getCurrentHP() == 0)
+			}
+			if(c.getCurrentHP() == 0) {
 				board[c.getLocation().x][c.getLocation().y] = null;
+			}
 		}
 	}
 

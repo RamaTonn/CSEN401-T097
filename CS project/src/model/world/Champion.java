@@ -150,7 +150,7 @@ public abstract class Champion implements Damageable , Comparable{
 	@Override
 	public int compareTo(Object o) {
 	Champion champ =(Champion)o;
-		if(this.getSpeed()< champ.getSpeed())
+		if(this.getSpeed() < champ.getSpeed())
 		      return -1;
 		else if(this.getSpeed() > champ.getSpeed())
 			return 1;
