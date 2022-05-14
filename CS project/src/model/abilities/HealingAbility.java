@@ -20,17 +20,14 @@ public  class HealingAbility extends Ability {
 		this.healAmount = healAmount;
 	}
 
-	public void execute(ArrayList<Damageable> targets) {
-			
+	 public void execute(ArrayList<Damageable> targets) {
 		for(Damageable c: targets){
 			c.setCurrentHP(c.getCurrentHP()+this.healAmount);
 		}
 		this.setCurrentCooldown(this.getBaseCooldown());
 		
 	}
-	
-	
-
-	
 
 }
+
+	

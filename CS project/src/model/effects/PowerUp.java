@@ -22,7 +22,6 @@ public class PowerUp extends Effect {
 				h.setDamageAmount((int) (h.getDamageAmount() * 1.2));
 			}
 		}
-		c.getAppliedEffects().add(this);
 
 	}
 

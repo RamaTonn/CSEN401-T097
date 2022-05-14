@@ -12,7 +12,6 @@ public class Silence extends Effect {
 	public void apply(Champion c) {
 		c.setMaxActionPointsPerTurn(c.getMaxActionPointsPerTurn() + 2);
 		c.setCurrentActionPoints(c.getCurrentActionPoints() + 2);
-		c.getAppliedEffects().add(this);
 	}
 
 	public void remove(Champion c) {

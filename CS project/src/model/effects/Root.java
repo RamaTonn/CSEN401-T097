@@ -14,8 +14,6 @@ public class Root extends Effect {
 		if (!(c.getCondition().equals(Condition.INACTIVE))) {
 			c.setCondition(Condition.ROOTED);
 		}
-		c.getAppliedEffects().add(this);
-
 	}
 
 	public void remove(Champion c) {

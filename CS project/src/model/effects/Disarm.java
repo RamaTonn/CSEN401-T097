@@ -23,7 +23,7 @@ public class Disarm extends Effect {
 
 		c.getAppliedEffects().remove(this);
 
-		for (int i = 0; i < c.getAbilities().size() - 1; i++) {
+		for (int i = 0; i < c.getAbilities().size(); i++) {
 			Ability a = c.getAbilities().get(i);
 			if (a.getName().equals("Punch")) {
 				c.getAbilities().remove(i);
