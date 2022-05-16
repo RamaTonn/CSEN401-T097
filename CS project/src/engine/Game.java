@@ -91,25 +91,28 @@ public class Game {
 	}
 
 	public void endTurn() throws CloneNotSupportedException {
+
 		turnOrder.remove();
 		if (turnOrder.isEmpty()) {
 			prepareChampionTurns();
 		}
 		while (true) {
-			Champion c = (Champion) turnOrder.peekMin();
-			for (Effect e : c.getAppliedEffects()) {
-				if (e instanceof Stun) {
-					e.setDuration(e.getDuration() - 1);
-					if (e.getDuration() == 0) {
-						e.remove(c);
-					}
-				}
-			}
+
 			if (((Champion) turnOrder.peekMin()).getCondition() != Condition.INACTIVE) {
 				break;
 			}
+			durationUpdate();
+
 			turnOrder.remove();
+			if (turnOrder.isEmpty()) {
+				prepareChampionTurns();
+			}
 		}
+		durationUpdate();
+
+	}
+
+	public void durationUpdate() {
 		Champion c = getCurrentChampion();
 		c.setCurrentActionPoints(c.getMaxActionPointsPerTurn());
 		for (int i = 0; i < c.getAppliedEffects().size(); i++) {
@@ -120,7 +123,6 @@ public class Game {
 		for (Ability a : c.getAbilities()) {
 			a.setCurrentCooldown(a.getCurrentCooldown() - 1);
 		}
-
 	}
 
 	public void prepare(Player p) throws CloneNotSupportedException {
@@ -345,29 +347,29 @@ public class Game {
 
 	public Player checkGameOver() {
 		boolean f1 = true;
-		for(Champion c : firstPlayer.getTeam()) {
-			if(c.getCondition() != Condition.KNOCKEDOUT) {
+		for (Champion c : firstPlayer.getTeam()) {
+			if (c.getCondition() != Condition.KNOCKEDOUT) {
 				f1 = false;
-				
+
 			}
 		}
-		if(f1) {
+		if (f1) {
 			return secondPlayer;
 		}
-		
+
 		boolean f2 = true;
 
-		for(Champion c : secondPlayer.getTeam()) {
-			if(c.getCondition() != Condition.KNOCKEDOUT) {
+		for (Champion c : secondPlayer.getTeam()) {
+			if (c.getCondition() != Condition.KNOCKEDOUT) {
 				f2 = false;
-				
+
 			}
 		}
-		
-		if(f2) {
+
+		if (f2) {
 			return firstPlayer;
 		}
-		
+
 		return null;
 	}
 
@@ -377,11 +379,11 @@ public class Game {
 		if (c.getCurrentActionPoints() < 1) {
 			throw new NotEnoughResourcesException();
 		}
-		
-		if(c.getCondition() == Condition.ROOTED) {
+
+		if (c.getCondition() == Condition.ROOTED) {
 			throw new UnallowedMovementException();
 		}
-		
+
 		int x = c.getLocation().x;
 		int y = c.getLocation().y;
 		if (d == Direction.RIGHT) {
@@ -392,8 +394,8 @@ public class Game {
 				throw new UnallowedMovementException();
 			} else {
 				c.getLocation().move(x, y + 1);
-				;
 				board[x][y] = null;
+				board[x][y + 1] = c;
 			}
 		}
 
@@ -406,6 +408,7 @@ public class Game {
 			} else {
 				c.getLocation().move(x, y - 1);
 				board[x][y] = null;
+				board[x][y - 1] = c;
 			}
 		}
 
@@ -418,6 +421,7 @@ public class Game {
 			} else {
 				c.getLocation().move(x + 1, y);
 				board[x][y] = null;
+				board[x + 1][y] = c;
 			}
 		}
 
@@ -430,6 +434,7 @@ public class Game {
 			} else {
 				c.getLocation().move(x - 1, y);
 				board[x][y] = null;
+				board[x - 1][y] = c;
 			}
 		}
 
@@ -437,71 +442,61 @@ public class Game {
 	}
 
 	public void attack(Direction d)
-			throws NotEnoughResourcesException, InvalidTargetException, ChampionDisarmedException {
+			throws NotEnoughResourcesException, ChampionDisarmedException, InvalidTargetException {
 
 		Champion c = getCurrentChampion();
 
 		if (c.getCurrentActionPoints() < 2) {
 			throw new NotEnoughResourcesException();
 		}
+
+		c.setCurrentActionPoints(c.getCurrentActionPoints() - 2);
+
 		for (Effect e : c.getAppliedEffects()) {
-			if (e instanceof Disarm) {
+			if (e instanceof Disarm)
 				throw new ChampionDisarmedException();
-			}
+
 		}
 
-		if (attackTargets(d, c).size() == 0) {
+		if (attackTargets(d, c) == null) {
 			return;
 		}
 
-		Damageable target = attackTargets(d, c).get(0);
+		Damageable target = attackTargets(d, c);
+
+		if (target instanceof Cover) {
+			target.setCurrentHP(target.getCurrentHP() - c.getAttackDamage());
+		}
 
 		if (target instanceof Champion) {
-			if (member(c, (Champion) target)) {
-				throw new InvalidTargetException();
+			Champion ct = (Champion) target;
+			Shield s = containsShield(ct);
+			if (s != null) {
+				s.remove(ct);
+				return;
+			}
+
+			if (containsDodge(ct)) {
+				boolean dodge = (new Random()).nextBoolean();
+				if (dodge) {
+					return;
+				}
+			}
+
+			if ((c instanceof Hero && ct instanceof Villain) || (c instanceof Hero && ct instanceof AntiHero)
+					|| (c instanceof AntiHero && ct instanceof Villain) || (c instanceof AntiHero && ct instanceof Hero)
+					|| (c instanceof Villain && ct instanceof Hero)
+					|| (c instanceof Villain && ct instanceof AntiHero)) {
+				ct.setCurrentHP(ct.getCurrentHP() - (int) (c.getAttackDamage() * 1.5));
+			}
+
+			else {
+				ct.setCurrentHP(ct.getCurrentHP() - c.getAttackDamage());
 			}
 		}
 
-		if (isInRange(c.getAttackRange(), c.getLocation(), target.getLocation())) {
-			if (target instanceof Champion) {
-				Champion ct = (Champion) target;
-				boolean flag = false;
-				for (Effect e : ((Champion) target).getAppliedEffects()) {
-					if (!flag) {
-						if ((e instanceof Dodge) && e.getDuration() != 0) {
-							Random randNum = new Random();
-							boolean randomRes = randNum.nextBoolean();
-							if (randomRes == true) {
-								c.setCurrentActionPoints(c.getCurrentActionPoints() - 2);
-								flag = true;
-							}
-						} 
-					}
-					if (e instanceof Shield && e.getDuration() != 0) {
-						e.remove((Champion) target);
-						c.setCurrentActionPoints(c.getCurrentActionPoints() - 2);
-					}
-				}
-				if ((c instanceof Hero && ct instanceof Villain) || (c instanceof Hero && ct instanceof AntiHero)
-						|| (c instanceof AntiHero && ct instanceof Villain)
-						|| (c instanceof AntiHero && ct instanceof Hero) || (c instanceof Villain && ct instanceof Hero)
-						|| (c instanceof Villain && ct instanceof AntiHero)) {
-					ct.setCurrentHP(ct.getCurrentHP() - (int) (c.getAttackDamage() * 1.5));
-				}
+		removeDamageable(target);
 
-				else {
-					ct.setCurrentHP(ct.getCurrentHP() - c.getAttackDamage());
-				}
-			} else {
-				target.setCurrentHP(target.getCurrentHP() - c.getAttackDamage());
-			}
-
-		}
-		c.setCurrentActionPoints(c.getCurrentActionPoints() - 2);
-		ArrayList<Damageable> u = new ArrayList<Damageable>();
-		u.add(target);
-		removeDamageable(u);
-		
 	}
 
 	public void castAbility(Ability a)
@@ -511,6 +506,8 @@ public class Game {
 		if (!isEnough(c, a)) {
 			throw new NotEnoughResourcesException();
 		}
+
+		c.setCurrentActionPoints(c.getCurrentActionPoints() - a.getRequiredActionPoints());
 
 		if (a.getCurrentCooldown() != 0) {
 			throw new AbilityUseException();
@@ -528,7 +525,8 @@ public class Game {
 
 		if (a.getCastArea() == AreaOfEffect.SELFTARGET) {
 			ArrayList<Damageable> target = new ArrayList<Damageable>();
-			target.add((Damageable) board[c.getLocation().x][c.getLocation().y]);
+			if (board[c.getLocation().x][c.getLocation().y] != null)
+				target.add((Damageable) board[c.getLocation().x][c.getLocation().y]);
 			a.execute(target);
 		}
 
@@ -548,10 +546,11 @@ public class Game {
 			} else {
 				a.execute(inRange(getEnemy(c), c, a));
 			}
-			removeDamageable(inRange(getDamageable(c), c, a));
+			for (int i = 0; i < inRange(getDamageable(c), c, a).size(); i++) {
+				removeDamageable(inRange(getDamageable(c), c, a).get(i));
+			}
 		}
 
-		c.setCurrentActionPoints(c.getCurrentActionPoints() - a.getRequiredActionPoints());
 		c.setMana(c.getMana() - a.getManaCost());
 		a.setCurrentCooldown(a.getBaseCooldown());
 	}
@@ -563,6 +562,8 @@ public class Game {
 		if (!isEnough(c, a)) {
 			throw new NotEnoughResourcesException();
 		}
+
+		c.setCurrentActionPoints(c.getCurrentActionPoints() - a.getRequiredActionPoints());
 
 		if (a.getCurrentCooldown() != 0) {
 			throw new AbilityUseException();
@@ -577,11 +578,14 @@ public class Game {
 				throw new AbilityUseException();
 			}
 		}
-		ArrayList<Damageable> targets = inRange(getTargets(d, c, a), c, a);
-		a.execute(inRange(getTargets(d, c, a), c, a));
-		removeDamageable(inRange(getTargets(d, c, a), c, a));
 
-		c.setCurrentActionPoints(c.getCurrentActionPoints() - a.getRequiredActionPoints());
+		a.execute(getTargets(d, c, a));
+
+		
+			for (int i = 0; i < getTargets(d, c, a).size(); i++) {
+				removeDamageable(getTargets(d, c, a).get(i));
+			} 
+		
 		c.setMana(c.getMana() - a.getManaCost());
 		a.setCurrentCooldown(a.getBaseCooldown());
 	}
@@ -601,18 +605,18 @@ public class Game {
 		if (c.getCondition() == Condition.INACTIVE) {
 			throw new AbilityUseException();
 		}
-		
+
 		for (Effect e : c.getAppliedEffects()) {
 			if (e instanceof Silence) {
 				throw new AbilityUseException();
 			}
 		}
-		
-		if(!isInRange(a.getCastRange(), new Point(x,y), c.getLocation())) {
+
+		if (!isInRange(a.getCastRange(), new Point(x, y), c.getLocation())) {
 			throw new InvalidTargetException();
 		}
-		
-		if(x == c.getLocation().x && y == c.getLocation().y) {
+
+		if (x == c.getLocation().x && y == c.getLocation().y) {
 			throw new InvalidTargetException();
 		}
 
@@ -620,33 +624,32 @@ public class Game {
 			throw new InvalidTargetException();
 		}
 
-		if ((a instanceof CrowdControlAbility || a instanceof HealingAbility) && board[x][y] instanceof Cover) {
+		if ((!(a instanceof DamagingAbility)) && (board[x][y] instanceof Cover)) {
 			throw new InvalidTargetException();
 		}
 
-		if ((a instanceof HealingAbility || (a instanceof CrowdControlAbility
-				&& ((CrowdControlAbility) a).getEffect().getType() == EffectType.BUFF))
-				&& (!member(c, (Champion) board[x][y]))) {
+		if (a instanceof DamagingAbility && member(c, (Champion) board[x][y])) {
 			throw new InvalidTargetException();
 		}
 
-		if ((a instanceof DamagingAbility || (a instanceof CrowdControlAbility
-				&& ((CrowdControlAbility) a).getEffect().getType() == EffectType.DEBUFF))
-				&& (member(c, (Champion) board[x][y]))) {
+		if (a instanceof HealingAbility && !member(c, (Champion) board[x][y])) {
 			throw new InvalidTargetException();
 		}
-		if ((a instanceof DamagingAbility || a instanceof HealingAbility
-				|| (a instanceof CrowdControlAbility
-						&& ((CrowdControlAbility) a).getEffect().getType() == EffectType.BUFF))
-				&& board[x][y] instanceof Cover) {
-			throw new InvalidTargetException();
+
+		if (ccType(a) != null) {
+			if ((ccType(a) == EffectType.BUFF) && !member(c, (Champion) board[x][y])) {
+				throw new InvalidTargetException();
+			}
+			if ((ccType(a) == EffectType.DEBUFF) && member(c, (Champion) board[x][y])) {
+				throw new InvalidTargetException();
+			}
 		}
 
 		ArrayList<Damageable> target = new ArrayList<Damageable>();
 		target.add((Damageable) board[x][y]);
 		a.execute(target);
 		if (a instanceof DamagingAbility) {
-			removeDamageable(target);
+			removeDamageable((Damageable) board[x][y]);
 		}
 		c.setCurrentActionPoints(c.getCurrentActionPoints() - a.getRequiredActionPoints());
 		c.setMana(c.getMana() - a.getManaCost());
@@ -680,22 +683,24 @@ public class Game {
 			} else {// except leaders of both teams
 				for (Damageable d : getAlly(c)) {
 					if (!isLeader((Champion) d))
-						targets.add((Champion) d);						
+						targets.add((Champion) d);
 				}
 
 				for (Damageable d : getEnemy(c)) {
 					if (!isLeader((Champion) d))
 						targets.add((Champion) d);
 				}
-				targets.remove(firstPlayer.getLeader());
-				targets.remove(secondPlayer.getLeader());
 			}
-		}		
-		c.useLeaderAbility(targets);
-		if(isFirstPlayer(c)) {
-			firstLeaderAbilityUsed = true;
 		}
-		else {
+		c.useLeaderAbility(targets);
+		if (c instanceof Villain) {
+			for (Champion x : targets) {
+				removeDamageable(x);
+			}
+		}
+		if (isFirstPlayer(c)) {
+			firstLeaderAbilityUsed = true;
+		} else {
 			secondLeaderAbilityUsed = true;
 		}
 	}
@@ -729,10 +734,27 @@ public class Game {
 		}
 
 		for (Champion x : team) {
-			//if(x!=c){
 			d.add(x);
+
 		}
 		return d;
+	}
+
+	public ArrayList<Damageable> getAlly2(Champion c) {
+		ArrayList<Damageable> allies = new ArrayList();
+		for (int i = 0; i < BOARDWIDTH; i++) {
+			for (int j = 0; j < BOARDHEIGHT; j++) {
+				if (board[i][j] != null) {
+					if (board[i][j] instanceof Champion) {
+						Champion x = (Champion) board[i][j];
+						if (member(c, x)) {
+							allies.add(x);
+						}
+					}
+				}
+			}
+		}
+		return allies;
 	}
 
 	// helper
@@ -750,8 +772,7 @@ public class Game {
 		for (Champion x : team) {
 			d.add(x);
 		}
-		
-		
+
 		return d;
 	}
 
@@ -819,121 +840,54 @@ public class Game {
 		return true;
 	}
 
-	/*public Damageable retrieve(Direction d, Champion c) {
-		
-		int x = c.getLocation().x;
-		int y = c.getLocation().y;
-		if (d.equals(Direction.UP)) {
-			for (int r = ++y; r <= c.getAttackRange() && y != BOARDHEIGHT - 1; r++) {
-				y++;
-				if (board[x][y] instanceof Champion) {
-					Champion f = (Champion) board[x][y];
-					if (member(c, f) == false) {
-						return f;
-	
-					}
-				}
-				if (board[x][y] instanceof Cover) {
-					Cover co = (Cover) board[x][y];
-					return co;
-	
-				}
-			}
-		}
-		if (d.equals(Direction.DOWN)) {
-			for (int r = BOARDHEIGHT - 1; r <= c.getAttackRange() && y != 0; r++) {
-				y--;
-				if (board[x][y] instanceof Champion) {
-					Champion f = (Champion) board[x][y];
-					if (member(c, f) == false) {
-						return f;
-	
-					}
-				}
-				if (board[x][y] instanceof Cover) {
-					Cover co = (Cover) board[x][y];
-					return co;
-				}
-			}
-		}
-		if (d.equals(Direction.LEFT)) {
-			for (int r = BOARDWIDTH - 1; r <= c.getAttackRange() && x != 0; r++) {
-				x--;
-				if (board[x][y] instanceof Champion) {
-					Champion f = (Champion) board[x][y];
-					if (member(c, f) == false) {
-						return f;
-	
-					}
-				}
-				if (board[x][y] instanceof Cover) {
-					Cover co = (Cover) board[x][y];
-					return co;
-	
-				}
-			}
-		}
-		if (d.equals(Direction.RIGHT)) {
-			for (int r = 0; r <= c.getAttackRange() && x != BOARDWIDTH - 1; r++) {
-				x++;
-				if (board[x][y] instanceof Champion) {
-					Champion f = (Champion) board[x][y];
-					if (member(c, f) == false) {
-						return f;
-	
-					}
-				}
-				if (board[x][y] instanceof Cover) {
-					Cover co = (Cover) board[x][y];
-					return co;
-				}
-			}
-		}
-		return null;
-	
-	}*/
-
 	public ArrayList<Damageable> getTargets(Direction d, Champion c, Ability a) {
 		int x = c.getLocation().x;
 		int y = c.getLocation().y;
-		ArrayList<Damageable> retrieve = new ArrayList<Damageable>();
+		ArrayList<Damageable> targets = new ArrayList<Damageable>();
 
-		if (a instanceof HealingAbility || (a instanceof CrowdControlAbility
-				&& (((CrowdControlAbility) a).getEffect().getType() == EffectType.BUFF))) {
+		if ((a instanceof HealingAbility) || (ccType(a) == EffectType.BUFF)) {
 			if (d.equals(Direction.RIGHT)) {
-				for (int j = y; j < BOARDHEIGHT; j++) {
+				for (int j = y + 1; j < BOARDHEIGHT; j++) {
 
 					if (board[x][j] instanceof Champion && (member(c, (Champion) board[x][j]))) {
 						Champion f = (Champion) board[x][j];
-						retrieve.add(f);
+						if (isInRange(a.getCastRange(), c.getLocation(), f.getLocation())) {
+							targets.add(f);
+						}
 					}
 				}
 			}
 
 			if (d.equals(Direction.LEFT)) {
-				for (int j = y; j >= 0; j--) {
+				for (int j = y - 1; j >= 0; j--) {
 
 					if (board[x][j] instanceof Champion && (member(c, (Champion) board[x][j]))) {
 						Champion f = (Champion) board[x][j];
-						retrieve.add(f);
+						if (isInRange(a.getCastRange(), c.getLocation(), f.getLocation())) {
+							targets.add(f);
+						}
 					}
 				}
 			}
 			if (d.equals(Direction.DOWN)) {
-				for (int i = x; i >= 0; i--) {
+				for (int i = x - 1; i >= 0; i--) {
 
 					if (board[i][y] instanceof Champion && (member(c, (Champion) board[i][y]))) {
 						Champion f = (Champion) board[i][y];
-						retrieve.add(f);
+						if (isInRange(a.getCastRange(), c.getLocation(), f.getLocation())) {
+							targets.add(f);
+						}
 					}
 				}
 			}
 			if (d.equals(Direction.UP)) {
-				for (int i = x; i < BOARDWIDTH; i++) {
+				for (int i = x + 1; i < BOARDWIDTH; i++) {
 
 					if (board[i][y] instanceof Champion && (member(c, (Champion) board[i][y]))) {
 						Champion f = (Champion) board[i][y];
-						retrieve.add(f);
+						if (isInRange(a.getCastRange(), c.getLocation(), f.getLocation())) {
+							targets.add(f);
+						}
 					}
 				}
 			}
@@ -941,139 +895,305 @@ public class Game {
 
 		if (a instanceof DamagingAbility) {
 			if (d.equals(Direction.RIGHT)) {
-				for (int j = y; j < BOARDHEIGHT; j++) {
+				for (int j = y + 1; j < BOARDHEIGHT; j++) {
 
 					if ((board[x][j] instanceof Champion && !(member(c, (Champion) board[x][j])))
 							|| (board[x][j] instanceof Cover)) {
-						retrieve.add((Damageable) board[x][j]);
+						Damageable t = (Damageable) board[x][j];
+						if (isInRange(a.getCastRange(), c.getLocation(), t.getLocation())) {
+							targets.add(t);
+						}
 					}
 				}
 			}
 
 			if (d.equals(Direction.LEFT)) {
-				for (int j = y; j >= 0; j--) {
+				for (int j = y - 1; j >= 0; j--) {
 
 					if ((board[x][j] instanceof Champion && !(member(c, (Champion) board[x][j])))
 							|| (board[x][j] instanceof Cover)) {
-						retrieve.add((Damageable) board[x][j]);
+						Damageable t = (Damageable) board[x][j];
+						if (isInRange(a.getCastRange(), c.getLocation(), t.getLocation())) {
+							targets.add(t);
+						}
 					}
 				}
-			}
-			if (d.equals(Direction.DOWN)) {
-				for (int i = x; i >= 0; i--) {
+				if (d.equals(Direction.DOWN)) {
+					for (int i = x - 1; i >= 0; i--) {
 
-					if ((board[i][y] instanceof Champion && !(member(c, (Champion) board[i][y])))
-							|| (board[i][y] instanceof Cover)) {
-						retrieve.add((Damageable) board[i][y]);
+						if ((board[i][y] instanceof Champion && !(member(c, (Champion) board[i][y])))
+								|| (board[i][y] instanceof Cover)) {
+							Damageable t = (Damageable) board[i][y];
+							if (isInRange(a.getCastRange(), c.getLocation(), t.getLocation())) {
+								targets.add(t);
+							}
+						}
 					}
 				}
-			}
-			if (d.equals(Direction.UP)) {
-				for (int i = x; i < BOARDWIDTH; i++) {
+				if (d.equals(Direction.UP)) {
+					for (int i = x + 1; i < BOARDWIDTH; i++) {
 
-					if ((board[i][y] instanceof Champion && !(member(c, (Champion) board[i][y])))
-							|| (board[i][y] instanceof Cover)) {
-						retrieve.add((Damageable) board[i][y]);
+						if ((board[i][y] instanceof Champion && !(member(c, (Champion) board[i][y])))
+								|| (board[i][y] instanceof Cover)) {
+							Damageable t = (Damageable) board[i][y];
+							if (isInRange(a.getCastRange(), c.getLocation(), t.getLocation())) {
+								targets.add(t);
+							}
+						}
 					}
 				}
 			}
-		} else {
+		}
+
+		if (ccType(a) == EffectType.DEBUFF) {
 			if (d.equals(Direction.RIGHT)) {
-				for (int j = y; j < BOARDHEIGHT; j++) {
+				for (int j = y + 1; j < BOARDHEIGHT; j++) {
 
 					if (board[x][j] instanceof Champion && !(member(c, (Champion) board[x][j]))) {
 						Champion f = (Champion) board[x][j];
-						retrieve.add(f);
+						if (isInRange(a.getCastRange(), c.getLocation(), f.getLocation())) {
+							targets.add(f);
+						}
 					}
-					if (board[x][j] instanceof Cover) {
-						Cover f = (Cover) board[x][j];
-						retrieve.add(f);
-					}
+
 				}
 			}
 
 			if (d.equals(Direction.LEFT)) {
-				for (int j = y; j >= 0; j--) {
+				for (int j = y - 1; j >= 0; j--) {
 
 					if (board[x][j] instanceof Champion && !(member(c, (Champion) board[x][j]))) {
 						Champion f = (Champion) board[x][j];
-						retrieve.add(f);
-					}
-					if (board[x][j] instanceof Cover) {
-						Cover f = (Cover) board[x][j];
-						retrieve.add(f);
+						if (isInRange(a.getCastRange(), c.getLocation(), f.getLocation())) {
+							targets.add(f);
+						}
 					}
 				}
 			}
 			if (d.equals(Direction.DOWN)) {
-				for (int i = x; i >= 0; i--) {
+				for (int i = x - 1; i >= 0; i--) {
 
 					if (board[i][y] instanceof Champion && !(member(c, (Champion) board[i][y]))) {
 						Champion f = (Champion) board[i][y];
-						retrieve.add(f);
-					}
-					if (board[i][y] instanceof Cover) {
-						Cover f = (Cover) board[i][y];
-						retrieve.add(f);
+						if (isInRange(a.getCastRange(), c.getLocation(), f.getLocation())) {
+							targets.add(f);
+						}
 					}
 				}
 			}
 			if (d.equals(Direction.UP)) {
-				for (int i = x; i < BOARDWIDTH; i++) {
+				for (int i = x + 1; i < BOARDWIDTH; i++) {
 
 					if (board[i][y] instanceof Champion && !(member(c, (Champion) board[i][y]))) {
 						Champion f = (Champion) board[i][y];
-						retrieve.add(f);
+						if (isInRange(a.getCastRange(), c.getLocation(), f.getLocation())) {
+							targets.add(f);
+						}
 					}
-					if (board[i][y] instanceof Cover) {
-						Cover f = (Cover) board[i][y];
-						retrieve.add(f);
-					}
-				}
-			}
-		}
-		return retrieve;
-
-	}
-
-	public ArrayList<Damageable> attackTargets(Direction d, Champion c) {
-		ArrayList<Damageable> targets = new ArrayList<Damageable>();
-		int x = c.getLocation().x;
-		int y = c.getLocation().y;
-
-		if (d == Direction.RIGHT) {
-			for (int i = y; i < BOARDWIDTH && i <= (y + c.getAttackRange()); i++) {
-				if (board[x][i] != null) {
-					targets.add((Damageable) board[x][i]);
-				}
-			}
-		}
-
-		if (d == Direction.LEFT) {
-			for (int i = y; i >= 0 && i >= (y - c.getAttackRange()); i--) {
-				if (board[x][i] != null) {
-					targets.add((Damageable) board[x][i]);
-				}
-			}
-		}
-
-		if (d == Direction.UP) {
-			for (int i = x; i < BOARDHEIGHT && i <= (x + c.getAttackRange()); i++) {
-				if (board[i][y] != null) {
-					targets.add((Damageable) board[i][y]);
-				}
-			}
-		}
-
-		if (d == Direction.DOWN) {
-			for (int i = x; i < BOARDWIDTH && i <= (x - c.getAttackRange()); i--) {
-				if (board[i][y] != null) {
-					targets.add((Damageable) board[i][y]);
 				}
 			}
 		}
 
 		return targets;
+	}
+
+	public ArrayList<Damageable> getTargets2(Direction d, Champion c, Ability a) {
+		int x = c.getLocation().x;
+		int y = c.getLocation().y;
+		ArrayList<Damageable> retrieve = new ArrayList<Damageable>();
+
+		if (a instanceof HealingAbility || (a instanceof CrowdControlAbility
+				&& (((CrowdControlAbility) a).getEffect().getType() == EffectType.BUFF))) {
+			if (d.equals(Direction.RIGHT)) {
+				for (int j = y + 1; j < BOARDHEIGHT; j++) {
+
+					if (board[x][j] instanceof Champion && (member(c, (Champion) board[x][j]))) {
+						Champion f = (Champion) board[x][j];
+						if (isInRange(a.getCastRange(), c.getLocation(), f.getLocation())) {
+							retrieve.add(f);
+						}
+					}
+				}
+			}
+
+			if (d.equals(Direction.LEFT)) {
+				for (int j = y - 1; j >= 0; j--) {
+
+					if (board[x][j] instanceof Champion && (member(c, (Champion) board[x][j]))) {
+						Champion f = (Champion) board[x][j];
+						if (isInRange(a.getCastRange(), c.getLocation(), f.getLocation())) {
+							retrieve.add(f);
+						}
+					}
+				}
+			}
+			if (d.equals(Direction.DOWN)) {
+				for (int i = x - 1; i >= 0; i--) {
+
+					if (board[i][y] instanceof Champion && (member(c, (Champion) board[i][y]))) {
+						Champion f = (Champion) board[i][y];
+						if (isInRange(a.getCastRange(), c.getLocation(), f.getLocation())) {
+							retrieve.add(f);
+						}
+					}
+				}
+			}
+			if (d.equals(Direction.UP)) {
+				for (int i = x + 1; i < BOARDWIDTH; i++) {
+
+					if (board[i][y] instanceof Champion && (member(c, (Champion) board[i][y]))) {
+						Champion f = (Champion) board[i][y];
+						if (isInRange(a.getCastRange(), c.getLocation(), f.getLocation())) {
+							retrieve.add(f);
+						}
+					}
+				}
+			}
+		}
+
+		if (a instanceof DamagingAbility) {
+			if (d.equals(Direction.RIGHT)) {
+				for (int j = y + 1; j < BOARDHEIGHT; j++) {
+
+					if ((board[x][j] instanceof Champion && !(member(c, (Champion) board[x][j])))
+							|| (board[x][j] instanceof Cover)) {
+						Damageable t = (Damageable) board[x][j];
+						if (isInRange(a.getCastRange(), c.getLocation(), t.getLocation())) {
+							retrieve.add(t);
+						}
+					}
+				}
+			}
+
+			if (d.equals(Direction.LEFT)) {
+				for (int j = y - 1; j >= 0; j--) {
+
+					if ((board[x][j] instanceof Champion && !(member(c, (Champion) board[x][j])))
+							|| (board[x][j] instanceof Cover)) {
+						Damageable t = (Damageable) board[x][j];
+						if (isInRange(a.getCastRange(), c.getLocation(), t.getLocation())) {
+							retrieve.add(t);
+						}
+					}
+				}
+				if (d.equals(Direction.DOWN)) {
+					for (int i = x - 1; i >= 0; i--) {
+
+						if ((board[i][y] instanceof Champion && !(member(c, (Champion) board[i][y])))
+								|| (board[i][y] instanceof Cover)) {
+							Damageable t = (Damageable) board[i][y];
+							if (isInRange(a.getCastRange(), c.getLocation(), t.getLocation())) {
+								retrieve.add(t);
+							}
+						}
+					}
+				}
+				if (d.equals(Direction.UP)) {
+					for (int i = x + 1; i < BOARDWIDTH; i++) {
+
+						if ((board[i][y] instanceof Champion && !(member(c, (Champion) board[i][y])))
+								|| (board[i][y] instanceof Cover)) {
+							Damageable t = (Damageable) board[i][y];
+							if (isInRange(a.getCastRange(), c.getLocation(), t.getLocation())) {
+								retrieve.add(t);
+							}
+						}
+					}
+				}
+			}
+		} else {
+			if (d.equals(Direction.RIGHT)) {
+				for (int j = y + 1; j < BOARDHEIGHT; j++) {
+
+					if (board[x][j] instanceof Champion && !(member(c, (Champion) board[x][j]))) {
+						Champion f = (Champion) board[x][j];
+						if (isInRange(a.getCastRange(), c.getLocation(), f.getLocation())) {
+							retrieve.add(f);
+						}
+					}
+
+				}
+			}
+
+			if (d.equals(Direction.LEFT)) {
+				for (int j = y - 1; j >= 0; j--) {
+
+					if (board[x][j] instanceof Champion && !(member(c, (Champion) board[x][j]))) {
+						Champion f = (Champion) board[x][j];
+						if (isInRange(a.getCastRange(), c.getLocation(), f.getLocation())) {
+							retrieve.add(f);
+						}
+					}
+				}
+			}
+			if (d.equals(Direction.DOWN)) {
+				for (int i = x - 1; i >= 0; i--) {
+
+					if (board[i][y] instanceof Champion && !(member(c, (Champion) board[i][y]))) {
+						Champion f = (Champion) board[i][y];
+						if (isInRange(a.getCastRange(), c.getLocation(), f.getLocation())) {
+							retrieve.add(f);
+						}
+					}
+				}
+			}
+			if (d.equals(Direction.UP)) {
+				for (int i = x + 1; i < BOARDWIDTH; i++) {
+
+					if (board[i][y] instanceof Champion && !(member(c, (Champion) board[i][y]))) {
+						Champion f = (Champion) board[i][y];
+						if (isInRange(a.getCastRange(), c.getLocation(), f.getLocation())) {
+							retrieve.add(f);
+						}
+					}
+				}
+			}
+		}
+
+		return retrieve;
+	}
+
+	public Damageable attackTargets(Direction d, Champion c) {
+		int x = c.getLocation().x;
+		int y = c.getLocation().y;
+
+		if (d == Direction.UP) {
+			for (int i = x + 1; i < BOARDHEIGHT; i++) {
+				if (board[i][y] != null) {
+					if (isInRange(c.getAttackRange(), c.getLocation(), new Point(i, y))) {
+						return (Damageable) board[i][y];
+					}
+				}
+			}
+		}
+		if (d == Direction.DOWN) {
+			for (int i = x - 1; i >= 0; i--) {
+				if (board[i][y] != null) {
+					if (isInRange(c.getAttackRange(), c.getLocation(), new Point(i, y))) {
+						return (Damageable) board[i][y];
+					}
+				}
+			}
+		}
+		if (d == Direction.RIGHT) {
+			for (int i = y + 1; i < BOARDWIDTH; i++) {
+				if (board[x][i] != null) {
+					if (isInRange(c.getAttackRange(), c.getLocation(), new Point(x, i))) {
+						return (Damageable) board[x][i];
+					}
+				}
+			}
+		}
+		if (d == Direction.LEFT) {
+			for (int i = y - 1; i >= 0; i--) {
+				if (board[x][i] != null) {
+					if (isInRange(c.getAttackRange(), c.getLocation(), new Point(x, i))) {
+						return (Damageable) board[x][i];
+					}
+				}
+			}
+		}
+		return null;
 	}
 
 	// helper
@@ -1096,44 +1216,58 @@ public class Game {
 		return false;
 	}
 
-	public void removeDamageable(ArrayList<Damageable> d) {
-		for (Damageable c : d) {
-			if (c.getCurrentHP() == 0) {				
-				board[c.getLocation().x][c.getLocation().y] = null;
-				if(c instanceof Champion) {
-					((Champion) c).setCondition(Condition.KNOCKEDOUT);
-					if(isFirstPlayer((Champion)c)) {
-						firstPlayer.getTeam().remove((Champion) c);
-					}
-					else {
-						secondPlayer.getTeam().remove((Champion) c);
-					}
+	public void removeDamageable(Damageable d) {
+		if (d.getCurrentHP() == 0) {
+			board[d.getLocation().x][d.getLocation().y] = null;
+
+			if (d instanceof Champion) {
+				((Champion) d).setCondition(Condition.KNOCKEDOUT);
+				if (isFirstPlayer((Champion) d)) {
+					firstPlayer.getTeam().remove((Champion) d);
 				}
+				removeFromQ((Champion) d);
 			}
-
 		}
 	}
 
-	public void removeDamageable(Champion c, Damageable r) {
-
-		if (c instanceof Champion && ((Champion) c).getCondition() == Condition.KNOCKEDOUT || c.getCurrentHP() == 0)
-			board[c.getLocation().x][c.getLocation().y] = null;
-		else if (r instanceof Cover && ((Cover) r).getCurrentHP() == 0)
-			board[r.getLocation().x][r.getLocation().y] = null;
+	public Shield containsShield(Champion c) {
+		for (Effect e : c.getAppliedEffects()) {
+			if (e instanceof Shield) {
+				return (Shield) e;
+			}
+		}
+		return null;
 	}
 
-	public void calculateHealthPointsAfterAttack(Champion champ, Champion target, boolean c, boolean r) {
-		if (!c && !r) {
-			target.setCurrentHP(target.getCurrentHP() - champ.getAttackDamage());
-			champ.setCurrentHP(champ.getCurrentHP() - target.getAttackDamage());
-		} else if (!c && r) {
-			target.setCurrentHP((int) (target.getCurrentHP() - champ.getAttackDamage() * 0.5));
-			champ.setCurrentHP((champ.getCurrentHP() - target.getAttackDamage()));
+	public boolean containsDodge(Champion c) {
+		for (Effect e : c.getAppliedEffects()) {
+			if (e instanceof Dodge) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public void removeFromQ(Comparable o) {
+		PriorityQueue temp = new PriorityQueue(turnOrder.size());
+		if (turnOrder.peekMin() != o) {
+			temp.insert(turnOrder.remove());
+		}
+
+		else {
+			turnOrder.remove();
+		}
+		while (!temp.isEmpty()) {
+			turnOrder.insert(temp.remove());
+		}
+	}
+
+	public EffectType ccType(Ability a) {
+		if (a instanceof CrowdControlAbility) {
+			return ((CrowdControlAbility) a).getEffect().getType();
 		} else {
-			target.setCurrentHP((int) (target.getCurrentHP() - champ.getAttackDamage()));
-			champ.setCurrentHP((int) (champ.getCurrentHP() - target.getAttackDamage() * 0.5));
+			return null;
 		}
-
 	}
 
 }

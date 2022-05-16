@@ -33,7 +33,7 @@ public class PowerUp extends Effect {
 				h.setHealAmount((int) (h.getHealAmount() / 1.2));
 			} else if (a instanceof DamagingAbility) {
 				DamagingAbility h = (DamagingAbility) a;
-				h.setDamageAmount((int) (h.getDamageAmount() / 0.2));
+				h.setDamageAmount((int) (h.getDamageAmount() / 1.2));
 			}
 		}
 	}

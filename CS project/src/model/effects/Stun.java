@@ -15,11 +15,18 @@ public class Stun extends Effect {
 
 	public void remove(Champion c) {
 		c.getAppliedEffects().remove(this);
-		if(c.getCondition() == Condition.ROOTED) {
-			return;
+		for (Effect e : c.getAppliedEffects()) {
+			if (e instanceof Stun) {
+				return;
+			}			
 		}
 		
-		c.setCondition(Condition.ACTIVE);
-
+		for (Effect e : c.getAppliedEffects()) {
+			if (e instanceof Root) {
+				c.setCondition(Condition.ROOTED);
+				return;
+			}			
+		}
+			c.setCondition(Condition.ACTIVE);
 	}
 }

@@ -14,7 +14,6 @@ public class Disarm extends Effect {
 	}
 
 	public void apply(Champion c) {
-			//c.getAppliedEffects().add(this);
 			c.getAbilities().add(new DamagingAbility("Punch", 0, 1, 1, AreaOfEffect.SINGLETARGET, 1, 50));
 }
 	
@@ -27,6 +26,7 @@ public class Disarm extends Effect {
 			Ability a = c.getAbilities().get(i);
 			if (a.getName().equals("Punch")) {
 				c.getAbilities().remove(i);
+				return;
 			}
 		}
 	}
