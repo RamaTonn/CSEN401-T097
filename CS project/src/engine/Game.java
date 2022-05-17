@@ -589,8 +589,7 @@ public class Game {
 		if (!isEnough(c, a)) {
 			throw new NotEnoughResourcesException();
 		}
-
-		c.setCurrentActionPoints(c.getCurrentActionPoints() - a.getRequiredActionPoints());
+		
 		if (a.getCurrentCooldown() != 0) {
 			throw new AbilityUseException();
 		}
@@ -638,6 +637,7 @@ public class Game {
 		if (a instanceof DamagingAbility) {
 			removeDamageable((Damageable) board[x][y]);
 		}
+		c.setCurrentActionPoints(c.getCurrentActionPoints() - a.getRequiredActionPoints());
 		c.setMana(c.getMana() - a.getManaCost());
 		a.setCurrentCooldown(a.getBaseCooldown());
 	}
