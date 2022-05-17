@@ -19,18 +19,7 @@ import model.abilities.AreaOfEffect;
 import model.abilities.CrowdControlAbility;
 import model.abilities.DamagingAbility;
 import model.abilities.HealingAbility;
-import model.effects.Disarm;
-import model.effects.Dodge;
-import model.effects.Effect;
-import model.effects.EffectType;
-import model.effects.Embrace;
-import model.effects.PowerUp;
-import model.effects.Root;
-import model.effects.Shield;
-import model.effects.Shock;
-import model.effects.Silence;
-import model.effects.SpeedUp;
-import model.effects.Stun;
+import model.effects.*;
 import model.world.*;
 
 import java.awt.Point;
@@ -525,9 +514,14 @@ public class Game {
 
 		if (a.getCastArea() == AreaOfEffect.SELFTARGET) {
 			ArrayList<Damageable> target = new ArrayList<Damageable>();
-			if (board[c.getLocation().x][c.getLocation().y] != null)
-				target.add((Damageable) board[c.getLocation().x][c.getLocation().y]);
-			a.execute(target);
+			if (board[c.getLocation().x][c.getLocation().y] != null) {
+				if ((a instanceof HealingAbility || (a instanceof CrowdControlAbility
+						&& ((CrowdControlAbility) a).getEffect().getType() == EffectType.BUFF))) {
+
+					target.add((Damageable) board[c.getLocation().x][c.getLocation().y]);
+					a.execute(target);
+				}
+			}
 		}
 
 		if ((a instanceof HealingAbility || (a instanceof CrowdControlAbility
@@ -540,7 +534,6 @@ public class Game {
 		}
 
 		if (a instanceof DamagingAbility) {
-
 			if (a.getCastArea() == AreaOfEffect.SURROUND) {
 				a.execute(inRange(getDamageable(c), c, a));
 			} else {
@@ -581,11 +574,10 @@ public class Game {
 
 		a.execute(getTargets(d, c, a));
 
-		
-			for (int i = 0; i < getTargets(d, c, a).size(); i++) {
-				removeDamageable(getTargets(d, c, a).get(i));
-			} 
-		
+		for (int i = 0; i < getTargets(d, c, a).size(); i++) {
+			removeDamageable(getTargets(d, c, a).get(i));
+		}
+
 		c.setMana(c.getMana() - a.getManaCost());
 		a.setCurrentCooldown(a.getBaseCooldown());
 	}
@@ -598,6 +590,7 @@ public class Game {
 			throw new NotEnoughResourcesException();
 		}
 
+		c.setCurrentActionPoints(c.getCurrentActionPoints() - a.getRequiredActionPoints());
 		if (a.getCurrentCooldown() != 0) {
 			throw new AbilityUseException();
 		}
@@ -611,17 +604,11 @@ public class Game {
 				throw new AbilityUseException();
 			}
 		}
-
-		if (!isInRange(a.getCastRange(), new Point(x, y), c.getLocation())) {
-			throw new InvalidTargetException();
-		}
-
-		if (x == c.getLocation().x && y == c.getLocation().y) {
-			throw new InvalidTargetException();
-		}
-
 		if (board[x][y] == null) {
 			throw new InvalidTargetException();
+		}
+		if (!isInRange(a.getCastRange(), new Point(x, y), c.getLocation())) {
+			throw new AbilityUseException();
 		}
 
 		if ((!(a instanceof DamagingAbility)) && (board[x][y] instanceof Cover)) {
@@ -651,7 +638,6 @@ public class Game {
 		if (a instanceof DamagingAbility) {
 			removeDamageable((Damageable) board[x][y]);
 		}
-		c.setCurrentActionPoints(c.getCurrentActionPoints() - a.getRequiredActionPoints());
 		c.setMana(c.getMana() - a.getManaCost());
 		a.setCurrentCooldown(a.getBaseCooldown());
 	}
@@ -698,6 +684,7 @@ public class Game {
 				removeDamageable(x);
 			}
 		}
+
 		if (isFirstPlayer(c)) {
 			firstLeaderAbilityUsed = true;
 		} else {
@@ -711,7 +698,8 @@ public class Game {
 		for (Champion c : firstPlayer.getTeam()) {
 			if (c == c1) {
 				f1 = true;
-			} else if (c == c2) {
+			}
+			if (c == c2) {
 				f2 = true;
 			}
 		}
@@ -801,9 +789,11 @@ public class Game {
 					range.add(x);
 				}
 			}
-			range.add(c);
+			if ((a instanceof HealingAbility || (a instanceof CrowdControlAbility
+					&& ((CrowdControlAbility) a).getEffect().getType() == EffectType.BUFF))) {
+				range.add(c);
+			}
 		}
-
 		if (a.getCastArea() == AreaOfEffect.SURROUND) {
 			int x = c.getLocation().x;
 			int y = c.getLocation().y;
@@ -812,13 +802,13 @@ public class Game {
 					if (i >= 0 && i < BOARDWIDTH && j >= 0 && j < BOARDHEIGHT) {
 						for (Damageable r : d) {
 							if (r.getLocation().x == i && r.getLocation().y == j) {
-								range.add(r);
+								if (r instanceof Cover || (r instanceof Champion && (Champion) r != c))
+									range.add(r);
 							}
 						}
 					}
 				}
 			}
-			range.remove(c);
 		}
 
 		return range;
@@ -918,27 +908,27 @@ public class Game {
 						}
 					}
 				}
-				if (d.equals(Direction.DOWN)) {
-					for (int i = x - 1; i >= 0; i--) {
+			}
+			if (d.equals(Direction.DOWN)) {
+				for (int i = x - 1; i >= 0; i--) {
 
-						if ((board[i][y] instanceof Champion && !(member(c, (Champion) board[i][y])))
-								|| (board[i][y] instanceof Cover)) {
-							Damageable t = (Damageable) board[i][y];
-							if (isInRange(a.getCastRange(), c.getLocation(), t.getLocation())) {
-								targets.add(t);
-							}
+					if ((board[i][y] instanceof Champion && !(member(c, (Champion) board[i][y])))
+							|| (board[i][y] instanceof Cover)) {
+						Damageable t = (Damageable) board[i][y];
+						if (isInRange(a.getCastRange(), c.getLocation(), t.getLocation())) {
+							targets.add(t);
 						}
 					}
 				}
-				if (d.equals(Direction.UP)) {
-					for (int i = x + 1; i < BOARDWIDTH; i++) {
+			}
+			if (d.equals(Direction.UP)) {
+				for (int i = x + 1; i < BOARDWIDTH; i++) {
 
-						if ((board[i][y] instanceof Champion && !(member(c, (Champion) board[i][y])))
-								|| (board[i][y] instanceof Cover)) {
-							Damageable t = (Damageable) board[i][y];
-							if (isInRange(a.getCastRange(), c.getLocation(), t.getLocation())) {
-								targets.add(t);
-							}
+					if ((board[i][y] instanceof Champion && !(member(c, (Champion) board[i][y])))
+							|| (board[i][y] instanceof Cover)) {
+						Damageable t = (Damageable) board[i][y];
+						if (isInRange(a.getCastRange(), c.getLocation(), t.getLocation())) {
+							targets.add(t);
 						}
 					}
 				}
@@ -1224,6 +1214,8 @@ public class Game {
 				((Champion) d).setCondition(Condition.KNOCKEDOUT);
 				if (isFirstPlayer((Champion) d)) {
 					firstPlayer.getTeam().remove((Champion) d);
+				} else {
+					secondPlayer.getTeam().remove((Champion) d);
 				}
 				removeFromQ((Champion) d);
 			}
@@ -1250,12 +1242,12 @@ public class Game {
 
 	public void removeFromQ(Comparable o) {
 		PriorityQueue temp = new PriorityQueue(turnOrder.size());
-		if (turnOrder.peekMin() != o) {
-			temp.insert(turnOrder.remove());
-		}
-
-		else {
-			turnOrder.remove();
+		while (!turnOrder.isEmpty()) {
+			if (turnOrder.peekMin() != o) {
+				temp.insert(turnOrder.remove());
+			} else {
+				turnOrder.remove();
+			}
 		}
 		while (!temp.isEmpty()) {
 			turnOrder.insert(temp.remove());
@@ -1270,4 +1262,5 @@ public class Game {
 		}
 	}
 
+	
 }

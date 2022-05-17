@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import model.effects.Effect;
 import model.effects.Shield;
 import model.world.Champion;
+import model.world.Cover;
 import model.world.Damageable;
 
 
@@ -22,22 +23,24 @@ public class DamagingAbility extends Ability {
 	public void setDamageAmount(int damageAmount) {
 		this.damageAmount = damageAmount;
 	}
-	public void execute(ArrayList<Damageable> targets) {
+	public void execute(ArrayList<Damageable> targets)throws  CloneNotSupportedException {
 		for(Damageable c: targets){
-			boolean f=true;
+			if(c instanceof Cover){
+				c.setCurrentHP(c.getCurrentHP()-this.damageAmount);
+					}}
+		for(Damageable c: targets){
 			if(c instanceof Champion){
+				boolean f=true;
 				for(Effect e:((Champion)c).getAppliedEffects()){
 					if (e instanceof Shield && e.getDuration() != 0){
-						((Champion)c).getAppliedEffects().remove(e);
+						((Shield)e.clone()).remove((Champion)c);
 						f=false;
-						break;
-					}
-					
+                   }
 				}
-			}
-			if(f)
-			c.setCurrentHP(c.getCurrentHP()-this.damageAmount);
-		}
+				if(f){
+					c.setCurrentHP(c.getCurrentHP()-this.damageAmount);
+			}}
+	}
 		this.setCurrentCooldown(this.getBaseCooldown());
 
 }

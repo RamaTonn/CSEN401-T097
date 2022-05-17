@@ -1,8 +1,7 @@
 package model.world;
+
 import java.util.*;
-
 import model.effects.*;
-
 
 public class Hero extends Champion {
 
@@ -10,17 +9,20 @@ public class Hero extends Champion {
 		super(name, maxHP, maxMana, actions, speed, attackRange, attackDamage);
 
 	}
-	public void useLeaderAbility(ArrayList<Champion> targets){
-		for(Champion c : targets){
-			for(int i =0; i < c.getAppliedEffects().size(); i++){
-				if(c.getAppliedEffects().get(i).getType().equals(EffectType.DEBUFF)){
-					c.getAppliedEffects().get(i).remove(c);
+	
+	public void useLeaderAbility(ArrayList<Champion> targets) {
+		for (Champion c : targets) {					
+			
+			for (int i = 0; i < c.getAppliedEffects().size(); i++) {
+				Effect f = c.getAppliedEffects().get(i);
+				if (f.getType() == EffectType.DEBUFF) {
+					f.remove(c);
 				}
 			}
-				Embrace e=new Embrace(2);
-				c.getAppliedEffects().add(e);
 			
-					}
+			Embrace e = new Embrace(2);
+			e.apply(c);
+			c.getAppliedEffects().add(e);
+		}
 	}
-	
 }
