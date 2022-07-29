@@ -6,7 +6,9 @@ import java.util.ArrayList;
 import engine.Game;
 import engine.Player;
 import engine.PriorityQueue;
-
+import exceptions.AbilityUseException;
+import exceptions.InvalidTargetException;
+import exceptions.NotEnoughResourcesException;
 import javafx.application.Application;
 import javafx.beans.binding.BooleanBinding;
 import javafx.event.ActionEvent;
@@ -40,7 +42,7 @@ import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
 import model.abilities.Ability;
 import model.world.Champion;
-
+import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 
 public class ViewFX extends Application {
@@ -270,15 +272,15 @@ public class ViewFX extends Application {
 				result.getChildren().add(b);
 			}
 		}
-		for (Button x : p) {
-
+		for (int i = 0; i < p.size(); i++) {
+			Button x = p.get(i);
 			x.setFont(new Font("Buchanan", 17));
 			x.setId("lion");
 
 			Image img = null;
 			ImageView view = null;
 
-			switch (option.get(p.indexOf(x)).getName()) {
+			switch (option.get(i).getName()) {
 			case "Thor":
 				img = new Image("Icon/Thor.jpg");
 				view = new ImageView(img);
@@ -391,13 +393,13 @@ public class ViewFX extends Application {
 			x.setFocusTraversable(false);
 			Champion c = Game.getAvailableChampions().get(p.indexOf(x));
 			String s = "";
-			s += "Name :" + c.getName() + "\n" + "MaxHP :" + c.getMaxHP() + "\n" + "CurrentHP :" + c.getCurrentHP()
-					+ "\n" + "Mana :" + c.getMana() + "\n" + "MaxActionPointsPerTurn :" + c.getMaxActionPointsPerTurn()
-					+ c.getCurrentActionPoints() + "\n" + "AttackRange :" + c.getAttackRange() + "\n" + "AttackDamage :"
-					+ c.getAttackDamage() + "\n" + "Speed :" + c.getSpeed() + "\n" + "Condition :" + c.getCondition()
-					+ "\n";
+			s +="MaxHP: " + c.getMaxHP() + "\n" + "CurrentHP: " + c.getCurrentHP()
+					+ "\n" + "Mana: " + c.getMana() + "\n" + "APs: " + c.getMaxActionPointsPerTurn()
+					+ c.getCurrentActionPoints() + "\n" + "AttackRange: " + c.getAttackRange() + "\n" + "AttackDamage: "
+					+ c.getAttackDamage() + "\n" + "Speed: " + c.getSpeed() + "\n" + "Condition: " + c.getCondition()
+					+ "\nAbilities: ";
 			for (Ability a : c.getAbilities()) {
-				s += a.getName() + "\n";
+				s += a.getName() + ", ";
 			}
 
 			x.setTooltip(new Tooltip(s));
@@ -610,7 +612,6 @@ public class ViewFX extends Application {
 		try {
 			game = new Game(player1, player2);
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		Label[][] Cells = new Label[5][5];
@@ -646,23 +647,48 @@ public class ViewFX extends Application {
 		x.setText(s);
 		Info.getChildren().add(x);
 
-		Label abS = new Label("Choose ability location");
+		VBox notice = new VBox();
+		CPInfo.setRight(notice);
+
+		TextField abS = new TextField();
+		abS.setPromptText("(X,Y)");
 		abS.setVisible(false);
-		CPInfo.getChildren().add(abS);
+		notice.getChildren().add(abS);
+		Button con = new Button("Enter");
+		con.setVisible(false);
+		notice.getChildren().add(con);
+
+		con.setOnAction(event -> {
+			try {
+				Controller.castAbility(game, abS.getText(), abilityS);
+				abS.setVisible(false);
+			} catch (Exception e) {
+				System.out.println(e.getMessage());
+			}
+		});
 
 		Label abD = new Label("Choose ability direction");
 		abD.setVisible(false);
-		CPInfo.getChildren().add(abD);
+		notice.getChildren().add(abD);
 
 		Label at = new Label("Choose attack direction");
 		at.setVisible(false);
-		CPInfo.getChildren().add(at);
+		notice.getChildren().add(at);
 
-		game1.setOnKeyReleased(new EventHandler<KeyEvent>() {
+		HBox abinfo = new HBox(10);		
+		ArrayList<Label> abilities = new ArrayList<Label>();
+		CPInfo.setLeft(abinfo);
+		
+		game1.setOnKeyPressed(new EventHandler<KeyEvent>() {
 
 			@Override
 			public void handle(KeyEvent event) {
-
+				for(Ability u: game.getCurrentChampion().getAbilities()) {
+					Label z = new Label(u.toString());
+					abinfo.getChildren().add(z);
+				}
+				Controller.updateAbilities(abilities, game.getCurrentChampion());
+				
 				try {
 					Controller.chooseAction(game, event);
 				} catch (Exception e) {
@@ -670,10 +696,11 @@ public class ViewFX extends Application {
 				}
 
 				abS.setVisible(abilityS != 0);
+				con.setVisible(abilityS != 0);
 				abD.setVisible(abilityD != 0);
 				at.setVisible(attack);
-
-				Controller.updatePos(Cells, game);
+							
+				Controller.updatePos(Cells, game);			
 				if (Controller.checkGameOver(game)) {
 					changeScene(GameOverScreen(stage, game.checkGameOver()), stage);
 				}

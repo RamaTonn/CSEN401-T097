@@ -41,7 +41,10 @@ public abstract class Champion implements Damageable, Comparable {
 		String result = "HP: " + maxHP + "\n Mana: " + mana + "\n AP: " + maxActionPointsPerTurn + "\n Speed: " + speed
 				+ "\n Attack Range: " + attackRange + "\n Attack Damage: " + attackDamage + "\n Abilities: ";
 		for(Ability a: abilities) {
-			result+= a.toString() +", ";
+			result+= a.getName() ;
+			if(abilities.indexOf(a)+1 < abilities.size()) {
+				result+= ", ";
+			}
 		}
 		return result;
 	}

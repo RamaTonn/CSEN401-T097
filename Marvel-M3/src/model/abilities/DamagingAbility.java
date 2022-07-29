@@ -29,4 +29,10 @@ public class DamagingAbility extends Ability {
 			d.setCurrentHP(d.getCurrentHP() - damageAmount);
 
 	}
+	
+	public String toString(){
+		String s = "Damage \n" + super.toString();
+		s+= "\nDamage: " + damageAmount;
+		return s;
+		}
 }

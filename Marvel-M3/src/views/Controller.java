@@ -1,5 +1,8 @@
 package views;
 
+import java.util.ArrayList;
+import java.util.Iterator;
+
 import javax.swing.text.View;
 
 import engine.Game;
@@ -28,12 +31,13 @@ public class Controller {
 
 	public static void castAbility(Game g, KeyEvent e) throws NotEnoughResourcesException, AbilityUseException,
 			CloneNotSupportedException, InvalidTargetException {
-		int i = Integer.valueOf(e.getCode().toString()) - 1;
+		int i = Character.getNumericValue(e.getCode().toString().charAt(5)) - 1;
 		Champion c = g.getCurrentChampion();
 		Ability a = c.getAbilities().get(i);
 		switch (a.getCastArea()) {
 		case DIRECTIONAL:
 			ViewFX.setAbilityD(i + 1);
+			System.out.println(ViewFX.getAbilityD());
 			break;
 		case SINGLETARGET:
 			ViewFX.setAbilityS(i + 1);
@@ -64,21 +68,15 @@ public class Controller {
 		ViewFX.setAbilityD(0);
 	}
 
-	public static Direction actionDirection(KeyEvent e) {
-		switch (e.getCode().toString()) {
-		case "UP":
-			return Direction.UP;
-		case "DOWN":
-			return Direction.DOWN;
-		case "LEFT":
-			return Direction.LEFT;
-		case "RIGHT":
-			return Direction.RIGHT;
-		default:
-			return null;
-		}
+	public static void castAbility(Game g, String cor,int abilityS) throws NotEnoughResourcesException, AbilityUseException, InvalidTargetException, CloneNotSupportedException {
+		String[] coor= cor.split(",");
+		int x = Integer.parseInt(coor[0]);
+		int y = Integer.parseInt(coor[1]);
+		Champion c = g.getCurrentChampion();
+		Ability a = c.getAbilities().get(abilityS-1);
+		g.castAbility(a, x, y);
 	}
-
+	
 	public static void chooseAction(Game g, KeyEvent e) throws NotEnoughResourcesException, ChampionDisarmedException,
 			InvalidTargetException, UnallowedMovementException, AbilityUseException, CloneNotSupportedException,
 			LeaderNotCurrentException, LeaderAbilityAlreadyUsedException {
@@ -87,10 +85,10 @@ public class Controller {
 				ViewFX.setAttack(false);
 				return;
 			}
-			attack(g, e);
+			attack(g, e); 
 		}
 		if (ViewFX.getAbilityD() != 0) {
-			castAbility(g, e);
+			castAbility(g, e, ViewFX.getAbilityD());
 		} else {
 			switch (e.getCode().toString()) {
 			case "W":
@@ -98,22 +96,21 @@ public class Controller {
 			case "S":
 			case "D":
 				move(g, e);
-				return;
+				break;
 			case "E":
 				ViewFX.setAttack(true);
-
-				return;
-			case "1":
-			case "2":
-			case "3":
+				break;
+			case "DIGIT1":
+			case "DIGIT2":
+			case "DIGIT3":
 				castAbility(g, e);
-				return;
+				break;
 			case "Q":
 				useLeaderAbility(g);
-				return;
+				break;
 			case "ESCAPE":
 				endTurn(g);
-				return;
+				break;
 			}
 		}
 	}
@@ -304,4 +301,10 @@ public class Controller {
 		l.setText(l.getText() + c.getName() + ", ");
 	}
 
+	public static void updateAbilities(ArrayList<Label> arr, Champion c) {
+		for(int i = 0 ; i < arr.size(); i++) {
+			arr.get(i).setText(c.getAbilities().get(i).toString());
+		}
+	}
+	
 }

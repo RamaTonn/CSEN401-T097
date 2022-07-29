@@ -492,8 +492,9 @@ public class Game {
 	}
 
 	public void castAbility(Ability a, int x, int y) throws NotEnoughResourcesException, AbilityUseException,
-			InvalidTargetException, CloneNotSupportedException {
+			InvalidTargetException, CloneNotSupportedException {		
 		validateCastAbility(a);
+		System.out.println(a.getName() + "Has been cast at location: " + "(" + x + "," + y + ")");
 		if (board[x][y] == null)
 			throw new InvalidTargetException("You can not cast an ability on an empty cell");
 		int distance = Math.abs((int) getCurrentChampion().getLocation().getX() - x)

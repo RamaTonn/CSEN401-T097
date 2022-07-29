@@ -60,4 +60,11 @@ public abstract class Ability {
 		return requiredActionPoints;
 	}
 
+	public String toString() {
+		String s = "Name: " + name + "\nMana: " + manaCost + "\nCooldown: "
+		+ baseCooldown + "\nRange: " + castRange + "\nAoE: " + castArea
+		+ "\nRequired Ap: " + requiredActionPoints;
+		return s;
+		}
+	
 }
